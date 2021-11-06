@@ -1,0 +1,5 @@
+fastapi # 0.70.0
+uvicorn[standard] # 0.15.0
+python-decouple # 3.5 - for loading secrets into a config.py
+mongoengine # 0.23.1
+dnspython # 2.1.0 must be installed to use mongodb+srv:// URIs
