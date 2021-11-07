@@ -5,6 +5,12 @@ import platform
 from config import Config
 
 class Info():
+    ''' Return basic system information and variables, like is app runs in production mode or not.
+        Might be useful on deployment.
+        In production can be used for fast status check
+
+        access via /info url
+    '''
 
     def get(self):
 

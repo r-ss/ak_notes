@@ -2,4 +2,8 @@ fastapi # 0.70.0
 uvicorn[standard] # 0.15.0
 python-decouple # 3.5 - for loading secrets into a config.py
 mongoengine # 0.23.1
-dnspython # 2.1.0 must be installed to use mongodb+srv:// URIs
+dnspython # 2.1.0 - must be installed to use mongodb+srv:// URIs
+bcrypt # 3.2.0 - for user auth, used in login.py
+PyJWT # 2.3.0 - for user auth, used in login.py
+pytest # 6.2.5
+requests # 2.26.0 - used by FastAPI TestClient

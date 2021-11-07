@@ -23,6 +23,7 @@ class Config(object):
     BASE_DIR = BASE_DIR
     PRODUCTION = PRODUCTION
     DEBUG = not PRODUCTION
+    SECRET_KEY = config('SECRET_KEY') # we don't use secret_key in application, but it's used in tests to ensure that secrets file exist and loads properly
     DBHOST = config('DBHOST_DEV')
     # TZ = pytz.timezone('Europe/Moscow')
 
