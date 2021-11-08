@@ -7,3 +7,4 @@ bcrypt # 3.2.0 - for user auth, used in login.py
 PyJWT # 2.3.0 - for user auth, used in login.py
 pytest # 6.2.5
 requests # 2.26.0 - used by FastAPI TestClient
+fastapi-utils # 0.2.1 - for @cbr decorator, Class Based Router

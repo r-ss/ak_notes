@@ -1,16 +1,14 @@
 import pytest
-# import json
 
 from config import Config
 
+from main import testclient
 
 from tests.testutils import post
 
 
 @pytest.fixture
-def client():
-    from main import testclient
-    # app.config['TESTING'] = True
+def client():    
     Config.TESTING_MODE = True
     return testclient
 

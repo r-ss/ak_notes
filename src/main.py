@@ -1,7 +1,8 @@
-from typing import Optional
+from typing import Optional, List
 
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from fastapi.testclient import TestClient
+from fastapi.responses import JSONResponse
 
 from pydantic import BaseModel
 
@@ -15,8 +16,15 @@ from models.models import Tag
 from info import Info
 
 
+
 class TagBM(BaseModel):
+    numerical_id: Optional[int]
     name: str
+
+class TagsBM(BaseModel):
+    __root__: List[TagBM]    # __root__
+
+
 
 mg = mongoengine.connect(host=Config.DBHOST)
 
@@ -55,10 +63,46 @@ def update_item(item_id: int, item: Item):
 @app.get("/tags")
 def get_tags():
     db_tags = Tag.objects.all()
-    return {"tags": db_tags.to_json()}
+
+    tags = TagsBM.parse_raw(db_tags.to_json())
+    return tags
+
+@app.get("/tags/{numerical_id}")
+def get_tag(numerical_id: int):
+
+    try:
+        db_tag = Tag.objects.get(numerical_id = numerical_id)
+    except Tag.DoesNotExist:
+        return JSONResponse(
+            status_code = status.HTTP_404_NOT_FOUND,
+            content = {'message': 'Tag does not found'}
+        )
+
+    db_tag = Tag.objects.get(numerical_id = numerical_id)
+    tag = TagBM.parse_raw(db_tag.to_json())
+    return tag
 
 
-@app.post("/tag")
+@app.post("/tags", status_code=status.HTTP_201_CREATED)
 def create_tag(tag: TagBM):
     db_tag = Tag(name = tag.name).save()
-    return {"tag": db_tag.name}
+    tag = TagBM.parse_raw(db_tag.to_json())
+    return tag
+
+@app.put("/tags/{numerical_id}")
+def update_tag(numerical_id: int, tag: TagBM):
+    db_tag = Tag.objects.get(numerical_id = numerical_id)
+    db_tag.name = tag.name
+    db_tag.save()
+    tag = TagBM.parse_raw(db_tag.to_json())
+    return tag
+
+
+@app.delete("/tags/{numerical_id}", status_code=status.HTTP_204_NO_CONTENT)
+def dels_tag(numerical_id: int):
+
+    db_tag = Tag.objects.get(numerical_id = numerical_id)
+    tag = TagBM.parse_raw(db_tag.to_json())
+
+    db_tag.delete()
+    return {'deteted tag': tag}

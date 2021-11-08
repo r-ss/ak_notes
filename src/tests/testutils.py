@@ -8,16 +8,18 @@ def get(client, url, headers = None):
     return response.status_code, response.json()
 
 def post(client, url, data, headers = None):
-    response = client.post(url, data=data, content_type='application/json', headers=headers)
-    return response.status_code, json.loads(response.data.decode('utf-8'))
+    data = json.dumps(data)
+    response = client.post(url, data=data, headers=headers)
+    return response.status_code, response.json()
 
 def put(client, url, data, headers = None):
-    response = client.put(url, data=data, content_type='application/json', headers=headers)
-    return response.status_code, json.loads(response.data.decode('utf-8'))
+    data = json.dumps(data)
+    response = client.put(url, data=data, headers=headers)
+    return response.status_code, response.json()
 
 def delete(client, url, headers = None):
     response = client.delete(url, headers=headers)
-    return response.status_code, json.loads(response.data.decode('utf-8'))
+    return response.status_code, response.json()
 
 # def postMultipartForm(client, url, one_or_multi_files_path, headers = None):
 
