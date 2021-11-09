@@ -26,3 +26,6 @@ task.txt
 
 .vscode
 .DS_Store
+
+# Project's dir for uploads
+stogare/

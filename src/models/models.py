@@ -11,7 +11,7 @@ class Category(mongoengine.Document):
 
 class Note(mongoengine.Document):
     numerical_id = mongoengine.SequenceField(unique=True)
-    uuid = mongoengine.fields.UUIDField(Binary=False, default=uuid4(), required=True)
+    uuid = mongoengine.fields.UUIDField(binary=False, default=uuid4(), required=True)
     created = mongoengine.DateTimeField(default=datetime.utcnow())
     modified = mongoengine.DateTimeField(default=datetime.utcnow())
     title = mongoengine.StringField(max_length=50)

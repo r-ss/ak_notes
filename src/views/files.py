@@ -26,14 +26,14 @@ class FilesCBV:
     @router.post("/files", status_code=status.HTTP_201_CREATED)
     def create(self, uploads: List[UploadFile] = FastAPIFile(...)):
 
-        print(uploads)
+        # print(uploads)
 
         fs.check_dir(Config.STORAGE['ROOT'])
 
 
         for upload in uploads:
 
-            print( upload.filename )
+            # print( upload.filename )
             file_location = '%s%s' % (Config.STORAGE['ROOT'], upload.filename )
             f = open(file_location, 'wb')
             f.write(upload.file.read())

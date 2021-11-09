@@ -1,63 +1,39 @@
-from typing import Optional, List
-
-from fastapi import FastAPI, status
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from fastapi.responses import JSONResponse
-
-from pydantic import BaseModel
-
-from config import Config
 
 import mongoengine as mongoengine
 
-
-# from models.models import Tag
-
+from config import Config
 from info import Info
-
-
-# from fastapi_utils.inferring_router import InferringRouter
 
 from views.tags import router as tags_router
 from views.files import router as files_router
+from views.users import router as users_router
+routers = [
+    tags_router,
+    files_router,
+    users_router
+]
 
-
-
+# Connecting to DB
 mg = mongoengine.connect(host=Config.DBHOST)
-
 
 app = FastAPI()
 testclient = TestClient(app)
 
 
-
-class Item(BaseModel):
-    name: str
-    price: float
-    is_offer: Optional[bool] = None
-
-@app.get("/")
+##############################
+# just two default routes here
+@app.get('/')
 def read_root():
-    return {"Hello": "World"}
+    return {'message':'there is no root url'}
 
-@app.get("/info")
+@app.get('/info')
 def info():
     return Info().get()
+##############################
 
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Optional[str] = None):
-
-    t = Tag.objects.all().count()
-    print('tags', t)
-
-    return {"item_id": item_id, "q": q}
-
-@app.put("/items/{item_id}")
-def update_item(item_id: int, item: Item):
-    return {"item_name": item.name, "item_id": item_id}
-
-
-
-app.include_router(tags_router)
-app.include_router(files_router)
+# including routes from our views
+for r in routers:
+    app.include_router(r)

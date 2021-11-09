@@ -24,14 +24,14 @@ def test_file_create(client):
     status_code, result = postFiles(client, '/files', [path1,path2])
     # file_numerical_id_save = int(result['id'])
 
-    print(Config.STORAGE['ROOT'])
+    # print(Config.STORAGE['ROOT'])
 
     # assert result['name'] == file_name_save
     assert status_code == 201 # HTTP_201_CREATED
 
 def test_files_list(client):
     status_code, result = get(client, '/files')
-    print(result)
+    # print(result)
     assert status_code == 200
     # assert len(result) == files_count + 1
 

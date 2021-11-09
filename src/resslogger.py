@@ -17,12 +17,13 @@ class RessLogger(object):
 
     dtformat = '%d.%m.%Y %H:%M:%S'
 
-    def dt(self):
+    @property
+    def time(self) -> str:
         return datetime.utcnow().strftime(self.dtformat)
 
-    def info(self, msg):
+    def info(self, msg) -> None:
         if not Config.TESTING_MODE:
-            print('resslogger, %s - info - %s' % (self.dt(), msg))
+            print('resslogger, %s - info - %s' % (self.time, msg))
 
             # if Config.PRODUCTION:
             #     if not 'by user ress' in msg: # don't send telegram for actions made by myself

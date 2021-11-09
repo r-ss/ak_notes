@@ -29,7 +29,7 @@ class File(mongoengine.Document):
 
 class FileBM(BaseModel):
     linked_to: Optional[str]
-    filename: str
+    filename: str = 'default.ext'
 
 
 class FilesBM(BaseModel):
