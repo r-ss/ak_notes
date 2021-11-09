@@ -8,6 +8,21 @@ user_uuid_save = None # will save id upon user creation for tests and remove use
 user_username_save = None
 user_password_save = None
 
+def test_user_create_bad_input(client):
+
+    # No password provided
+    data = {'username': 'nopassword'}
+    status_code, result = post(client, '/user/register', data)
+    assert result['message'] == 'Username and password must be provided for registration'
+    assert status_code == 400 # HTTP_400_BAD_REQUEST
+
+    # Short password case
+    data = {'username': 'shortpassword', 'password': 'short'}
+    status_code, result = post(client, '/user/register', data)
+    assert result['message'].startswith('Password must at least 6 chars') == True
+    assert status_code == 400 # HTTP_400_BAD_REQUEST
+
+
 def test_user_create(client):
     global user_uuid_save
     global user_username_save

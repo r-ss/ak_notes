@@ -14,12 +14,13 @@ from models.user import User
 from resslogger import RessLogger
 log = RessLogger()
 
+USERNAME_REGEX = compile(r'\A[\w\-\.]{4,}\Z')
+PASSWORD_REGEX = compile(r'\A[\w\-\.]{6,}\Z')
+
 # checking username for valid characters
 def username_pass_regex(username):
-    USERNAME_REGEX = compile(r'\A[\w\-\.]{4,}\Z')
     return USERNAME_REGEX.match(username) is not None
 def password_pass_regex(password):
-    PASSWORD_REGEX = compile(r'\A[\w\-\.]{6,}\Z')
     return PASSWORD_REGEX.match(password) is not None
 
 

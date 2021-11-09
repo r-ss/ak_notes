@@ -3,6 +3,11 @@ from fastapi import status
 from fastapi.responses import JSONResponse
 from fastapi_utils.inferring_router import InferringRouter
 
+# Following mongoengine import needed here just once for catch
+# exception mongoengine.errors.NotUniqueError upon duplicate user reg
+import mongoengine as mongoengine
+
+
 import datetime
 from re import compile
 
@@ -33,15 +38,21 @@ class UsersCBV:
     @router.post("/user/register", status_code=status.HTTP_201_CREATED)
     def create(self, user: UserBM):
 
-        if not user.username or not username_pass_regex(user.username):
+        if not user.password or not user.username:
+            return JSONResponse(
+                status_code = status.HTTP_400_BAD_REQUEST,
+                content = {'message': 'Username and password must be provided for registration'}
+            )
+
+        if not username_pass_regex(user.username):
             return JSONResponse(
                 status_code = status.HTTP_400_BAD_REQUEST,
                 content = {'message': 'Username must be at least 4 alphanumeric characters long & may contain . - _ chars.'}
             )
-        if not user.password or not password_pass_regex(user.password):
+        if not password_pass_regex(user.password):
             return JSONResponse(
                 status_code = status.HTTP_400_BAD_REQUEST,
-                content = {'Password must at least 6 chars and may contain . - _ symbols'}
+                content = {'message': 'Password must at least 6 chars and may contain . - _ symbols'}
             )
 
         passwd = user.password.encode('utf-8')
