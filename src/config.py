@@ -7,10 +7,9 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 PRODUCTION = False
 
 STORAGEROOT = '/storage/'
-# if not os.path.isdir(STORAGEROOT):
-#     STORAGEROOT = (
-#         '/home/ress/ak_notes_storage/'  # in case of running on remote server without Docker
-#     )
+if not os.path.isdir(STORAGEROOT):
+    STORAGEROOT = '%s/storage/' % os.path.split(BASE_DIR)[0]
+    
 
 
 # # print(socket.gethostname())
@@ -29,13 +28,16 @@ class Config(object):
 
     TESTING_MODE = False  # Must be set to True only in autotests
     TESTING_ASSETS_PATH = (
-        '%s/testing_assets/' % os.path.split(STORAGEROOT)[0]
+        '%s/testing_assets/' % os.path.split(BASE_DIR)[0]
     )  # using in tests
+    
 
     if PRODUCTION:
         pass
 
+    ALLOWED_UPLOADS = ['jpg', 'jpeg', 'gif', 'png', 'zip', 'txt']
+
     STORAGE = {
         'ROOT': STORAGEROOT,
-        'MEDIA': '%s/media/' % os.path.split(STORAGEROOT)[0]
+        'MEDIA': '%s/media/' % os.path.split(BASE_DIR)[0]
     }

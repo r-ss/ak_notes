@@ -18,7 +18,8 @@ from info import Info
 
 # from fastapi_utils.inferring_router import InferringRouter
 
-from views.tags import router_tags
+from views.tags import router as tags_router
+from views.files import router as files_router
 
 
 
@@ -58,4 +59,5 @@ def update_item(item_id: int, item: Item):
 
 
 
-app.include_router(router_tags)
+app.include_router(tags_router)
+app.include_router(files_router)

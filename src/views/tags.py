@@ -5,20 +5,20 @@ from fastapi_utils.inferring_router import InferringRouter
 
 from models.tag import Tag, TagBM, TagsBM
 
-router_tags = InferringRouter()
+router = InferringRouter()
 
-@cbv(router_tags)
+@cbv(router)
 class TagsCBV:
 
     ''' CREATE '''
-    @router_tags.post("/tags", status_code=status.HTTP_201_CREATED)
+    @router.post("/tags", status_code=status.HTTP_201_CREATED)
     def create(self, tag: TagBM):
         db_tag = Tag(name = tag.name).save()
         tag = TagBM.parse_raw(db_tag.to_json())
         return tag
 
     ''' READ '''
-    @router_tags.get("/tags/{numerical_id}")
+    @router.get("/tags/{numerical_id}")
     def read(self, numerical_id: int):
 
         try:
@@ -29,11 +29,10 @@ class TagsCBV:
                 content = {'message': 'Tag does not found'}
             )
 
-        db_tag = Tag.objects.get(numerical_id = numerical_id)
         tag = TagBM.parse_raw(db_tag.to_json())
         return tag
 
-    @router_tags.get("/tags")
+    @router.get("/tags")
     def read_all(self):
         db_tags = Tag.objects.all()
 
@@ -41,7 +40,7 @@ class TagsCBV:
         return tags    
 
     ''' UPDATE '''
-    @router_tags.put("/tags/{numerical_id}")
+    @router.put("/tags/{numerical_id}")
     def update(self, numerical_id: int, tag: TagBM):
         db_tag = Tag.objects.get(numerical_id = numerical_id)
         db_tag.name = tag.name
@@ -50,7 +49,7 @@ class TagsCBV:
         return tag
 
     ''' DELETE '''
-    @router_tags.delete("/tags/{numerical_id}", status_code=status.HTTP_204_NO_CONTENT)
+    @router.delete("/tags/{numerical_id}", status_code=status.HTTP_204_NO_CONTENT)
     def delete(self, numerical_id: int):
 
         db_tag = Tag.objects.get(numerical_id = numerical_id)

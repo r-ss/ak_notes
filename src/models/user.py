@@ -6,3 +6,4 @@ class User(mongoengine.Document):
     # email = mongoengine.EmailField(required=True, unique=True)
     userhash = mongoengine.StringField(required=True, max_length=200)
     created = mongoengine.DateTimeField(default=datetime.utcnow())
+    # is_superadmin = mongoengine.BooleanField(default=False)

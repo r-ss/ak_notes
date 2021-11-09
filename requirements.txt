@@ -8,3 +8,4 @@ PyJWT # 2.3.0 - for user auth, used in login.py
 pytest # 6.2.5
 requests # 2.26.0 - used by FastAPI TestClient
 fastapi-utils # 0.2.1 - for @cbr decorator, Class Based Router
+python-multipart # 0.0.5 - Form data in FastAPI requires "python-multipart" to be installed

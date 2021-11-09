@@ -1,5 +1,4 @@
 import os
-# from werkzeug.datastructures import FileStorage
 import json
 
 
@@ -21,28 +20,19 @@ def delete(client, url, headers = None):
     response = client.delete(url, headers=headers)
     return response.status_code, response.json()
 
-# def postMultipartForm(client, url, one_or_multi_files_path, headers = None):
+def postFiles(client, url, files):
 
-#     if isinstance(one_or_multi_files_path, str):
-#         the_file = FileStorage(
-#             stream=open(one_or_multi_files_path, 'rb'),
-#             filename=os.path.basename(os.path.normpath(one_or_multi_files_path))
-#         )
-#         data = { 'file': [the_file] }
+    if isinstance(files, str):
+        stream = open(files, 'rb')
+        files_data = {'uploads': (os.path.basename(files), stream, 'image/png')}
 
-#     if isinstance(one_or_multi_files_path, list):
-#         data = { 'file': [] }
-#         for path in one_or_multi_files_path:
+    elif isinstance(files, list):
+        files_data = []
+        for path in files:
+            stream = open(path, 'rb')
+            item = ('uploads', (os.path.basename(path), stream, 'image/png'))
+            files_data.append(item)
 
-#             the_file = FileStorage(
-#                 stream=open(path, 'rb'),
-#                 filename=os.path.basename(os.path.normpath(path))
-#             )
-#             data['file'].append(the_file)
+    response = client.post(url, files=files_data)
+    return response.status_code, response.json()
 
-#     response = client.post(url, content_type='multipart/form-data', data=data, headers=headers)
-#     return response.status_code, json.loads(response.data.decode('utf-8'))
-
-# def getHTML(client, url):
-#     response = client.get(url)
-#     return response.status_code, response.data

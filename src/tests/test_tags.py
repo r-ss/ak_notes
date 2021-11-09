@@ -45,7 +45,7 @@ def test_tag_update(client):
     assert result['name'] == tag_name_save + '_upd'
     assert status_code == 200
 
-def test_tag_deletes(client):
+def test_tag_delete(client):
     status_code, result = delete(client, f'/tags/{tag_numerical_id_save}')
     assert status_code == 204
 
