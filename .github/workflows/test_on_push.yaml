@@ -1,6 +1,5 @@
 name: Run tests on any Push event
-# Запуск при любом push евенте в любой ветке, за исключением релизных тэгов.
-# Они будт тестироваться перед сборкой
+# Will run on every push event in repository
 on:
   push:
     tags:
@@ -11,23 +10,22 @@ jobs:
   run_tests:
     runs-on: [ubuntu-latest]
     steps:
-      # Чекаутим код
+      # Code checkout
       - uses: actions/checkout@master
-      # Устанавливаем python нужной версии
+      # Setup Python
       - uses: actions/setup-python@v1
         with:
           python-version: '3.10'
           architecture: 'x64'
       - name: Install requirements
-        # Устанавливаем зависимости
         run: pip install -r requirements.txt
       - name: Make storage dir for tests
         run: sudo mkdir -p /storage # needs for testing
+      - name: Change storage dir owner
+        run: sudo chown -R runner /storage
       - name: Run tests
-        env: # Or as an environment variable
+        # set project secrets as env variables
+        env:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           DBHOST_DEV: ${{ secrets.DBHOST_DEV }}
         run: pytest -v
-        # run: coverage run src/tests.py
-      # - name: Tests report
-      #   run: coverage report

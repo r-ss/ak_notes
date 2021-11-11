@@ -10,6 +10,8 @@ from pydantic import BaseModel, constr
 from models.user import UserBM
 from models.category import CategoryBM
 
+from config import Config
+
 import json
 
 # заметка имеет поля заголовок, тело (markdown), теги (список), owner, id (uuid), category_id, shortbody (для списка), files
@@ -35,16 +37,11 @@ class Note(mongoengine.Document):
     }
 
     def to_custom_json(self) -> str:
-        dtformat = '%Y-%m-%d %H:%M:%S'
-
         data = json.loads(self.to_json())      
         data['owner'] = json.loads(self.owner.to_json())
         data['category'] = json.loads(self.category.to_json())
-        # data['created'] = str(self.created)
-        # data['modified'] = str(self.modified)
-        data['created'] = self.created.strftime(dtformat)
-        data['modified'] = self.modified.strftime(dtformat)
-
+        data['created'] = self.created.strftime( Config.DATETIME_FORMAT_TECHNICAL )
+        data['modified'] = self.modified.strftime( Config.DATETIME_FORMAT_TECHNICAL )
         return json.dumps(data)
 
 
