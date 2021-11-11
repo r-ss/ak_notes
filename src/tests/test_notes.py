@@ -50,7 +50,7 @@ def test_note_update(client):
     data = {'title': '%s_upd' % note_data_save['title']}
     status_code, result = put(client, f'/notes/{note_uuid_save}', data)
     # print(result)
-    print(result['uuid'])
+    # print(result['uuid'])
     # assert result['uuid'] == note_uuid_save
     assert result['title'] == '%s_upd' % note_data_save['title']
     assert status_code == 200

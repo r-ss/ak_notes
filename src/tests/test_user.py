@@ -19,7 +19,7 @@ def test_user_bad_input(client):
     # Short password case
     data = {'username': 'shortpassword', 'password': 'short'}
     status_code, result = post(client, '/user/register', data)
-    assert result['message'].startswith('Password must at least 6 chars') == True
+    assert result['message'].startswith('Password must at least 6 char') == True
     assert status_code == 400 # HTTP_400_BAD_REQUEST
 
 
@@ -30,6 +30,9 @@ def test_user_create(client):
 
     user_username_save = f'user_{make_random_string(4)}'
     user_password_save = make_random_string(6)
+
+    # user_username_save = Config.TESTUSER_SUPER['username']
+    # user_password_save = Config.TESTUSER_SUPER['password']
 
     data = {'username': user_username_save, 'password': user_password_save}
     status_code, result = post(client, '/user/register', data)

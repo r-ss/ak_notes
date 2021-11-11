@@ -8,28 +8,17 @@ from fastapi_utils.inferring_router import InferringRouter
 import mongoengine as mongoengine
 
 
-import datetime
 from re import compile
 
-import bcrypt
-import jwt
 
 from models.user import User, UserBM, UserRegBM
+
+from user_auth import hash_password, username_pass_regex, password_pass_regex
 
 router = InferringRouter()
 
 from resslogger import RessLogger
 log = RessLogger()
-
-USERNAME_REGEX = compile(r'\A[\w\-\.]{4,}\Z')
-PASSWORD_REGEX = compile(r'\A[\w\-\.]{6,}\Z')
-
-# checking username for valid characters
-def username_pass_regex(username):
-    return USERNAME_REGEX.match(username) is not None
-def password_pass_regex(password):
-    return PASSWORD_REGEX.match(password) is not None
-
 
 @cbv(router)
 class UsersCBV:
@@ -47,21 +36,18 @@ class UsersCBV:
         if not username_pass_regex(user.username):
             return JSONResponse(
                 status_code = status.HTTP_400_BAD_REQUEST,
-                content = {'message': 'Username must be at least 4 alphanumeric characters long & may contain . - _ chars.'}
+                content = {'message': 'Username must be at least 4 characters and may contain . - _ chars.'}
             )
         if not password_pass_regex(user.password):
             return JSONResponse(
                 status_code = status.HTTP_400_BAD_REQUEST,
-                content = {'message': 'Password must at least 6 chars and may contain . - _ symbols'}
+                content = {'message': 'Password must at least 6 characters and may contain . - _ symbols'}
             )
 
-        passwd = user.password.encode('utf-8')
-        salt = bcrypt.gensalt()
-        hashedpw = bcrypt.hashpw(passwd, salt).decode('utf-8')
 
         db_user = User(
             username = user.username,
-            userhash = hashedpw
+            userhash = hash_password(user.password)
         )
 
         try:

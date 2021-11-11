@@ -6,11 +6,32 @@ from main import testclient
 
 from tests.testutils import post
 
+# here test users tokens will be saved after login for use in tests
+user_token_save = None
+superuser_token_save = None
 
 @pytest.fixture
 def client():    
     Config.TESTING_MODE = True
     return testclient
+
+
+@pytest.fixture
+def user_token(client):
+    global user_token_save
+
+    # send login request only on first call
+    if not user_token_save:
+        login_data = {
+            "username": Config.TESTUSER['username'],
+            "password": Config.TESTUSER['password']
+        }
+        status_code, result = post(client, '/login', login_data)
+        user_token_save = result['token']
+    return user_token_save
+
+
+
 
 
 # @pytest.fixture
