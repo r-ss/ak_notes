@@ -11,7 +11,6 @@ from models.user import UserBM
 from models.category import CategoryBM
 
 import json
-from bson import json_util
 
 # заметка имеет поля заголовок, тело (markdown), теги (список), owner, id (uuid), category_id, shortbody (для списка), files
 
@@ -36,16 +35,21 @@ class Note(mongoengine.Document):
     }
 
     def to_custom_json(self) -> str:
+        dtformat = '%Y-%m-%d %H:%M:%S'
+
         data = json.loads(self.to_json())      
         data['owner'] = json.loads(self.owner.to_json())
         data['category'] = json.loads(self.category.to_json())
-        data['created'] = str(self.created)
-        data['modified'] = str(self.modified)
+        # data['created'] = str(self.created)
+        # data['modified'] = str(self.modified)
+        data['created'] = self.created.strftime(dtformat)
+        data['modified'] = self.modified.strftime(dtformat)
+
         return json.dumps(data)
 
 
 
-
+# Base model frame
 class NoteBM(BaseModel):
     numerical_id: Optional[int]
     uuid: Optional[str]
@@ -53,11 +57,22 @@ class NoteBM(BaseModel):
     modified: Optional[datetime.datetime]
     title: constr(max_length=50)
     body: str
+    # owner: Optional[UserBM]
+    # files: Optional[list]
+    # category: Optional[CategoryBM]
+    # tags: Optional[list]
+
+# Used on json output
+class NoteExtendedBM(NoteBM):
     owner: Optional[UserBM]
     files: Optional[list]
     category: Optional[CategoryBM]
     tags: Optional[list]
 
+# Usen upon note update - added Optional fields
+class NoteEditBM(NoteBM):
+    title: Optional[constr(max_length=50)]
+    body: Optional[str]
 
 class NotesBM(BaseModel):
     __root__: List[NoteBM]    # __root__
