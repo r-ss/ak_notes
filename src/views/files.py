@@ -1,6 +1,7 @@
 from fastapi_utils.cbv import cbv
 from fastapi import status
 from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse
 from fastapi_utils.inferring_router import InferringRouter
 
 from fastapi import UploadFile
@@ -60,6 +61,11 @@ class FilesCBV:
         db_file = File.objects.get(id = id)
         file = FileBM.parse_raw(db_file.to_json())
         return file
+
+    # TODO - implement downloads
+    # @
+    # def download()
+    # return FileResponse(path)
 
     @router.get("/files")
     def read_all(self):

@@ -3,7 +3,7 @@ import shutil
 # import zipfile
 
 
-class FileSystemUtils():
+class FileSystemUtils:
 
     def is_file_exist(self, path):
         if os.path.isfile(path) or os.path.isdir(path):

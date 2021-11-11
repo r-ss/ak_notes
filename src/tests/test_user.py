@@ -8,7 +8,7 @@ user_uuid_save = None # will save id upon user creation for tests and remove use
 user_username_save = None
 user_password_save = None
 
-def test_user_create_bad_input(client):
+def test_user_bad_input(client):
 
     # No password provided
     data = {'username': 'nopassword'}

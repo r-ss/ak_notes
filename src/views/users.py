@@ -14,7 +14,7 @@ from re import compile
 import bcrypt
 import jwt
 
-from models.user import User, UserBM
+from models.user import User, UserBM, UserRegBM
 
 router = InferringRouter()
 
@@ -36,7 +36,7 @@ class UsersCBV:
 
     ''' CREATE '''
     @router.post("/user/register", status_code=status.HTTP_201_CREATED)
-    def create(self, user: UserBM):
+    def create(self, user: UserRegBM):
 
         if not user.password or not user.username:
             return JSONResponse(

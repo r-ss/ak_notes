@@ -18,6 +18,8 @@ class User(mongoengine.Document):
 class UserBM(BaseModel):
     uuid: Optional[str]
     username: str
-    password: Optional[str] = None # used upon user registeration and password change
     is_superadmin: Optional[bool] = False
     # userhash: Optional[str]
+
+class UserRegBM(UserBM):
+    password: Optional[str] # used upon user registeration and password change

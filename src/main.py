@@ -7,12 +7,17 @@ from config import Config
 from info import Info
 
 from views.tags import router as tags_router
+from views.categories import router as categories_router
 from views.files import router as files_router
 from views.users import router as users_router
+from views.notes import router as notes_router
+
 routers = [
     tags_router,
+    categories_router,
     files_router,
-    users_router
+    users_router,
+    notes_router
 ]
 
 # Connecting to DB
@@ -28,7 +33,7 @@ testclient = TestClient(app)
 def read_root():
     return {'message':'there is no root url'}
 
-@app.get('/info')
+@app.get('/info', summary='Returns basic env and system information')
 def info():
     return Info().get()
 ##############################

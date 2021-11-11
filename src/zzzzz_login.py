@@ -24,7 +24,7 @@ def password_pass_regex(password):
     return PASSWORD_REGEX.match(password) is not None
 
 
-class UserRegister():
+class UserRegister:
 
     def post(self):
         data = request.get_json()['data']
