@@ -48,12 +48,12 @@ def test_user_get(client):
     assert result['username'] == user_username_save
     assert status_code == 200
 
-def test_user_update(client):
+def test_user_update(client, user_token):
     data = {'username': user_username_save + '_upd'}
-    status_code, result = put(client, f'/user/{user_uuid_save}', data)
+    status_code, result = put(client, f'/user/{user_uuid_save}', data, auth = user_token)
     assert result['username'] == user_username_save + '_upd'
     assert status_code == 200
 
-def test_user_delete(client):
-    status_code, result = delete(client, f'/user/{user_uuid_save}')
+def test_user_delete(client, user_token):
+    status_code, result = delete(client, f'/user/{user_uuid_save}', auth = user_token)
     assert status_code == 204 # HTTP_204_NO_CONTENT

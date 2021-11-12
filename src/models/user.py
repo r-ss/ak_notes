@@ -24,17 +24,16 @@ class UserBM(BaseModel):
     is_superadmin: Optional[bool] = False
     # userhash: Optional[str]
 
-class UserRegBM(UserBM): # used upon user registeration and password change
+class UserRegBM(UserBM): # used upon user registeration
     password: Optional[str] 
 
-class UserTokenBM(BaseModel): # used in check token function in user_auth
-    token: str
 
-class UserTokenDataBM(BaseModel): # used in functions wrapped in token_required decorator
+class UserTokenBM(BaseModel): # used in token_required 
     username: str
     uuid: str
+    is_superadmin: bool
     expires: str
 
-class UserLoginFormBM(BaseModel): # used in functions wrapped in token_required decorator
+class UserLoginFormBM(BaseModel): # used upon login
     username: str = Form(...)
     password: str = Form(...)

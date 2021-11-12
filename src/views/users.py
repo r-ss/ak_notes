@@ -1,5 +1,5 @@
 from fastapi_utils.cbv import cbv
-from fastapi import status
+from fastapi import status, Depends
 from fastapi.responses import JSONResponse
 from fastapi_utils.inferring_router import InferringRouter
 
@@ -8,12 +8,10 @@ from fastapi_utils.inferring_router import InferringRouter
 import mongoengine as mongoengine
 
 
-from re import compile
 
+from models.user import User, UserBM, UserRegBM, UserTokenBM
 
-from models.user import User, UserBM, UserRegBM
-
-from user_auth import hash_password, username_pass_regex, password_pass_regex
+from user_auth import hash_password, username_pass_regex, password_pass_regex, token_required, owner_or_admin_can_proceed_only
 
 router = InferringRouter()
 
@@ -95,7 +93,10 @@ class UsersCBV:
 
     ''' UPDATE '''
     @router.put("/user/{uuid}")
-    def update(self, uuid: str, user: UserBM):
+    def update(self, uuid: str, user: UserBM, token: UserTokenBM = Depends(token_required)):
+
+        owner_or_admin_can_proceed_only(uuid, token)
+
         db_user = User.objects.get(uuid = uuid)
         db_user.username = user.username
         db_user.save()
@@ -109,7 +110,9 @@ class UsersCBV:
 
     ''' DELETE '''
     @router.delete("/user/{uuid}", status_code=status.HTTP_204_NO_CONTENT)
-    def delete(self, uuid: str):
+    def delete(self, uuid: str, token: UserTokenBM = Depends(token_required)):
+
+        owner_or_admin_can_proceed_only(uuid, token)
 
         db_user = User.objects.get(uuid = uuid)
         user = UserBM.parse_raw(db_user.to_json())

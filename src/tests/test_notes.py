@@ -9,13 +9,13 @@ note_data_save = None
 notes_count = None
 
 
-def test_notes_count(client):
+def test_notes_count(client, user_token):
     global notes_count  # TODO - is it possible to save variable for another test cases without "global" keyword?
-    status_code, result = get(client, '/notes')
+    status_code, result = get(client, '/notes', auth = user_token)
     notes_count = len(result)
     assert status_code == 200
 
-def test_note_create(client):
+def test_note_create(client, user_token):
     global note_uuid_save
     global note_data_save
 
@@ -23,47 +23,38 @@ def test_note_create(client):
         'title': f'new_note_{ make_random_string(4) }',
         'body': 'boboboboob'
     }
-
-    status_code, result = post(client, '/notes', data)
+    status_code, result = post(client, '/notes', data, auth = user_token)
     note_uuid_save = result['uuid']
-
-    # print(result)
 
     assert result['title'] == note_data_save['title']
     assert result['body'] == note_data_save['body']
     assert status_code == 201 # HTTP_201_CREATED
 
-def test_notes_list(client):
-    status_code, result = get(client, '/notes')
+def test_notes_list(client, user_token):
+    status_code, result = get(client, '/notes', auth = user_token)
     assert status_code == 200
     assert len(result) == notes_count + 1
 
-def test_notes_specific(client):
-    # status_code, result = get(client, f'/notes/{note_numerical_id_save}')
-    status_code, result = get(client, f'/notes/{note_uuid_save}')
-    # assert result['numerical_id'] == note_numerical_id_save
-    # assert result['name'] == note_data_save
-    # print(result)
+def test_notes_specific(client, user_token):
+    status_code, result = get(client, f'/notes/{note_uuid_save}', auth = user_token)
+    assert result['title'] == note_data_save['title']
     assert status_code == 200
 
-def test_note_update(client):
+def test_note_update(client, user_token):
     data = {'title': '%s_upd' % note_data_save['title']}
-    status_code, result = put(client, f'/notes/{note_uuid_save}', data)
-    # print(result)
-    # print(result['uuid'])
-    # assert result['uuid'] == note_uuid_save
+    status_code, result = put(client, f'/notes/{note_uuid_save}', data, auth = user_token)
     assert result['title'] == '%s_upd' % note_data_save['title']
     assert status_code == 200
 
-def test_note_delete(client):
-    status_code, result = delete(client, f'/notes/{note_uuid_save}')
+def test_note_delete(client, user_token):
+    status_code, result = delete(client, f'/notes/{note_uuid_save}', auth = user_token)
     assert status_code == 204
 
-def test_note_after_delete(client):
-    status_code, result = get(client, f'/notes/{note_uuid_save}')
+def test_note_after_delete(client, user_token):
+    status_code, result = get(client, f'/notes/{note_uuid_save}', auth = user_token)
     assert status_code == 404
 
-def test_notes_list_again(client):
-    status_code, result = get(client, '/notes')
+def test_notes_list_again(client, user_token):
+    status_code, result = get(client, '/notes', auth = user_token)
     assert status_code == 200
     assert len(result) == notes_count

@@ -10,7 +10,7 @@ import jwt
 
 from config import Config
 
-from models.user import UserRegBM, UserTokenBM, UserTokenDataBM
+from models.user import User, UserTokenBM
 
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
@@ -42,24 +42,40 @@ def hash_password(pwd) -> str:
 router = InferringRouter()
 
 
+
+def owner_or_admin_can_proceed_only(uuid: str, token: UserTokenBM):
+
+    if token.is_superadmin:
+        return
+    else:
+        db_user = User.objects.get(uuid = uuid)
+        if db_user.username == token.username:
+            return
+
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Seems like you are not authorized to this')
+
+
+
+
 async def token_required(token: str = Depends(oauth2_scheme)):
-    tk = jwt.decode(token, Config.SECRET_KEY, algorithms=['HS256'])  
-    return tk
+    dict = jwt.decode(token, Config.SECRET_KEY, algorithms=['HS256'])
+    token = UserTokenBM.parse_obj(dict)
+    return token
 
 
 @cbv(router)
 class AuthCBV:
 
     ''' LOGIN '''
-    @router.post("/token", status_code=status.HTTP_202_ACCEPTED)
+    @router.post('/token', status_code=status.HTTP_202_ACCEPTED)
     def login(self, form_data: OAuth2PasswordRequestForm = Depends()):
 
         if not form_data.password or not form_data.username:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username and password must be provided for login")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Username and password must be provided for login')
         if not username_pass_regex(form_data.username):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username must be at least 4 characters and may contain . - _ chars.")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Username must be at least 4 characters and may contain . - _ chars.')
         if not password_pass_regex(form_data.password):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password must at least 6 characters and may contain . - _ symbols")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Password must at least 6 characters and may contain . - _ symbols')
 
         
 
@@ -77,7 +93,7 @@ class AuthCBV:
                 'username': db_user.username,
                 'uuid': str(db_user.uuid),
                 'is_superadmin': db_user.is_superadmin,
-                'exp': timeLimit
+                'expires': str(timeLimit)
             }
             # encrypt payload into token
             token = jwt.encode(payload, Config.SECRET_KEY, algorithm='HS256')
@@ -94,14 +110,14 @@ class AuthCBV:
 
     ''' CHECK TOKEN '''
     @router.get("/check_token", status_code=status.HTTP_200_OK)
-    def check_token(self, token: UserTokenDataBM = Depends(token_required)):
+    def check_token(self, token: UserTokenBM = Depends(token_required)):
         return {'token': token}
 
     
     ''' SECRET PAGE, USED TO ENSURE TOKEN MECHANIC WORKING '''
     # @router.get("/secretpage", dependencies=[Depends(token_required)], status_code=status.HTTP_200_OK)
     @router.get("/secretpage", status_code=status.HTTP_200_OK)
-    def secretpage(self, token: UserTokenDataBM = Depends(token_required)):
+    def secretpage(self, token: UserTokenBM = Depends(token_required)):
         return {'message': 'this is secret message'}
 
 

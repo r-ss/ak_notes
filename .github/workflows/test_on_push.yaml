@@ -30,7 +30,7 @@ jobs:
           CODECLIMATE_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
         run: coverage run -m pytest .
       - name: Publish code coverage
-        uses: paambaati/codeclimate-action@v2.7.5
+        uses: paambaati/codeclimate-action@v2.7.1
         env:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           DBHOST_DEV: ${{ secrets.DBHOST_DEV }}
