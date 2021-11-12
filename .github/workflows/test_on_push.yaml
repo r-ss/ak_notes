@@ -30,10 +30,13 @@ jobs:
           DBHOST_DEV: ${{ secrets.DBHOST_DEV }}
           CODECLIMATE_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
         run: pytest -v
+        run: coverage json
       - name: Test & publish code coverage
         uses: paambaati/codeclimate-action@v3.0.0
         env:
-          CODECLIMATE_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
           CC_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
         with:
-          coverageCommand: coverage
+          coverageLocations: |
+            ${{github.workspace}}/coverage.json:coverage.py
+          # coverageCommand: coverage
+          debug: true
