@@ -29,15 +29,28 @@ jobs:
           DBHOST_DEV: ${{ secrets.DBHOST_DEV }}
           CODECLIMATE_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
         run: coverage run --source=./src/tests -m pytest
+      - name: Print pwd
+        run: pwd
       - name: Print coverage report
-        run: ls -la && coverage report
-      - name: Publish code coverage
-        uses: paambaati/codeclimate-action@v2.7.1
+        run: ls -la && coverage report -m
+      - name: Upload code coverage to codeclimate
+        uses: paambaati/codeclimate-action@v3.0.0
         env:
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          DBHOST_DEV: ${{ secrets.DBHOST_DEV }}
-          CODECLIMATE_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
           CC_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
         with:
-          coverageCommand: coverage run --source=./src/tests -m pytest
+          coverageLocations: |
+            ${{github.workspace}}.coverage:coverage.py
           debug: true
+      # - name: Publish code coverage
+      #   uses: paambaati/codeclimate-action@v2.7.1
+      #   env:
+      #     SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      #     DBHOST_DEV: ${{ secrets.DBHOST_DEV }}
+      #     CODECLIMATE_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
+      #     CC_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
+      #   with:
+      #     coverageCommand: coverage run --source=./src/tests -m pytest
+      #     debug: true
+        
+
+      # ${{github.workspace}}/src/coverage.xml:coverage.py
