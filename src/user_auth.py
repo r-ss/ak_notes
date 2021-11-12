@@ -25,7 +25,7 @@ from models.user import User
 from resslogger import RessLogger
 log = RessLogger()
 
-USERNAME_REGEX = compile(r'\A[\w\-\.]{4,}\Z')
+USERNAME_REGEX = compile(r'\A[\w\-\.]{3,}\Z')
 PASSWORD_REGEX = compile(r'\A[\w\-\.]{6,}\Z')
 
 # checking username for valid characters
@@ -44,15 +44,17 @@ router = InferringRouter()
 
 
 def owner_or_admin_can_proceed_only(uuid: str, token: UserTokenBM):
+    if not token.is_superadmin and not str(uuid) == str(token.uuid):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Seems like you are not authorized to this')
 
-    if token.is_superadmin:
-        return
-    else:
-        db_user = User.objects.get(uuid = uuid)
-        if db_user.username == token.username:
-            return
+    # if token.is_superadmin:
+    #     return
+    # else:
+    #     db_user = User.objects.get(uuid = uuid)
+    #     if db_user.username == token.username:
+    #         return
 
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Seems like you are not authorized to this')
+    # raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Seems like you are not authorized to this')
 
 
 
@@ -73,7 +75,7 @@ class AuthCBV:
         if not form_data.password or not form_data.username:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Username and password must be provided for login')
         if not username_pass_regex(form_data.username):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Username must be at least 4 characters and may contain . - _ chars.')
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Username must be at least 3 characters and may contain . - _ chars.')
         if not password_pass_regex(form_data.password):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Password must at least 6 characters and may contain . - _ symbols')
 

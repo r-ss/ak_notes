@@ -21,9 +21,7 @@ class NotesCBV:
     @router.post("/notes", status_code=status.HTTP_201_CREATED)
     def create(self, note: NoteBM, token: UserTokenBM = Depends(token_required)):
 
-
-        # default user and category
-        usr = User.objects.get(uuid = token.uuid)
+        db_user = User.objects.get(uuid = token.uuid)
 
         # TODO - cetegory assign
         cat = Category.objects.get(numerical_id = 5)
@@ -31,7 +29,7 @@ class NotesCBV:
         db_note = Note(
             title = note.title,
             body = note.body,
-            owner = usr,
+            owner = db_user,
             category = cat
         )
         db_note.save()
@@ -41,8 +39,6 @@ class NotesCBV:
     ''' READ '''
     @router.get("/notes/{uuid}")
     def read(self, uuid: str, token: UserTokenBM = Depends(token_required)):
-
-
 
         try:
             db_note = Note.objects.get(uuid = uuid)
@@ -60,8 +56,8 @@ class NotesCBV:
     @router.get("/notes")
     def read_all(self, token: UserTokenBM = Depends(token_required)):
 
-        # TODO - get notes only for current user
-        db_notes = Note.objects.all()
+        db_user = User.objects.get(uuid = token.uuid)
+        db_notes = Note.objects.filter(owner = db_user)
 
         # TODO - Refactor following parse-unparse shit
         j = []

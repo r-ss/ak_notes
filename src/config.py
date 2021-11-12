@@ -28,8 +28,9 @@ class Config(object):
     TESTING_ASSETS_PATH = (
         '%s/testing_assets/' % os.path.split(BASE_DIR)[0]
     )
-    TESTUSER = {'username':'testuser','password':'5pRHsDMXJCQ4'} # Regular user, only for tests
-    TESTUSER_SUPER = {'username':'testsuperuser','password':'jePGE76QVFZY'} # Admin user, only for tests
+    TESTUSER_ALICE = {'username':'Alice','password':'5pRHsDMXJCQ4'} # Regular user, only for tests
+    TESTUSER_BOB = {'username':'Bob','password':'7kDMsDMXAZE8'} # Another regular user, used to check ownership
+    TESTUSER_SUPER = {'username':'Jesus','password':'jePGE76QVFZY'} # Admin user, only for tests - is_superadmin is set in database
     CODECLIMATE_TEST_REPORTER_ID = config('CODECLIMATE_TEST_REPORTER_ID')
 
     # FORMATTERS

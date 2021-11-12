@@ -1,5 +1,5 @@
 from fastapi_utils.cbv import cbv
-from fastapi import status, Depends
+from fastapi import status, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi_utils.inferring_router import InferringRouter
 
@@ -34,7 +34,7 @@ class UsersCBV:
         if not username_pass_regex(user.username):
             return JSONResponse(
                 status_code = status.HTTP_400_BAD_REQUEST,
-                content = {'message': 'Username must be at least 4 characters and may contain . - _ chars.'}
+                content = {'message': 'Username must be at least 3 characters and may contain . - _ chars.'}
             )
         if not password_pass_regex(user.password):
             return JSONResponse(
@@ -95,9 +95,11 @@ class UsersCBV:
     @router.put("/user/{uuid}")
     def update(self, uuid: str, user: UserBM, token: UserTokenBM = Depends(token_required)):
 
+        db_user = User.objects.get(uuid = uuid)
+
         owner_or_admin_can_proceed_only(uuid, token)
 
-        db_user = User.objects.get(uuid = uuid)
+        
         db_user.username = user.username
         db_user.save()
         user = UserBM.parse_raw(db_user.to_json())
@@ -112,9 +114,15 @@ class UsersCBV:
     @router.delete("/user/{uuid}", status_code=status.HTTP_204_NO_CONTENT)
     def delete(self, uuid: str, token: UserTokenBM = Depends(token_required)):
 
-        owner_or_admin_can_proceed_only(uuid, token)
-
         db_user = User.objects.get(uuid = uuid)
+
+
+        owner_or_admin_can_proceed_only(uuid, token)
+        # if not token.is_superadmin and not str(db_user.uuid) == str(token.uuid):
+        #     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Seems like you are not authorized to this')
+
+        
+
         user = UserBM.parse_raw(db_user.to_json())
         db_user.delete()
 

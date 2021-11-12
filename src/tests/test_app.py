@@ -1,4 +1,4 @@
-from tests.testutils import get, post
+from tests.testutils import get
 
 from config import Config
 
@@ -21,15 +21,3 @@ def test_info(client):
     assert result['resource'] == 'ak_notes, info'
     assert result['testing'] == True
     assert result['python version'] == '3.10.0'
-
-# def test_login(client):
-#     login_data = json.dumps({"data": { "username": "Alice","password": "pass_alice" } })
-#     status_code, result = post(client, '/login', login_data)
-#     assert status_code == 200
-#     assert result['auth'] == True
-
-# def test_badlogin(client):
-#     login_data = json.dumps({"data": { "username": "bad","password": "fake" } })
-#     status_code, result = post(client, '/login', login_data)
-#     assert status_code == 400 # User not found
-#     assert result['auth'] == False

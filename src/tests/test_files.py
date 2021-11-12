@@ -15,13 +15,13 @@ files_count = None
 #     files_count = len(result)
 #     assert status_code == 200
 
-def test_file_create(client, user_token):
+def test_file_create(client, alice_token):
 
     path1 = os.path.join(Config.TESTING_ASSETS_PATH, 'lambo.png')
     path2 = os.path.join(Config.TESTING_ASSETS_PATH, 'book.txt')
 
     # file_name_save = f'new_file_{ make_random_string(4) }'
-    status_code, result = postFiles(client, '/files', [path1,path2], auth=user_token)
+    status_code, result = postFiles(client, '/files', [path1,path2], auth=alice_token)
     # file_numerical_id_save = int(result['id'])
 
     # print(Config.STORAGE['ROOT'])
@@ -29,8 +29,8 @@ def test_file_create(client, user_token):
     # assert result['name'] == file_name_save
     assert status_code == 201 # HTTP_201_CREATED
 
-def test_files_list(client, user_token):
-    status_code, result = get(client, '/files', auth=user_token)
+def test_files_list(client, alice_token):
+    status_code, result = get(client, '/files', auth=alice_token)
     # print(result)
     assert status_code == 200
     # assert len(result) == files_count + 1
