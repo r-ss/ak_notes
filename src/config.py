@@ -31,6 +31,7 @@ class Config(object):
     TESTUSER_ALICE = {'username':'Alice','password':'5pRHsDMXJCQ4'} # Regular user, only for tests
     TESTUSER_BOB = {'username':'Bob','password':'7kDMsDMXAZE8'} # Another regular user, used to check ownership
     TESTUSER_SUPER = {'username':'Jesus','password':'jePGE76QVFZY'} # Admin user, only for tests - is_superadmin is set in database
+    TESTNOTE_BY_ALICE_UUID = '7bee43e5-e7e3-4be3-8a35-0f9ce3cd884b' # used in tests
     CODECLIMATE_TEST_REPORTER_ID = config('CODECLIMATE_TEST_REPORTER_ID')
 
     # FORMATTERS
@@ -43,3 +44,5 @@ class Config(object):
         'ROOT': STORAGEROOT,
         'UPLOADS': '%s/uploads/' % os.path.split(BASE_DIR)[0]
     }
+
+    HASH_DIGEST_SIZE = 8 # for hashing files with blake2b

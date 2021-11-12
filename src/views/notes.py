@@ -68,7 +68,7 @@ class NotesCBV:
         return notes
 
     ''' UPDATE '''
-    @router.put("/notes/{uuid}")
+    @router.put("/notes/{uuid}", status_code=status.HTTP_200_OK)
     def update(self, uuid: str, note: NoteEditBM, token: UserTokenBM = Depends(token_required)):
         db_note = Note.objects.get(uuid = uuid)
 

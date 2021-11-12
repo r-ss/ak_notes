@@ -1,5 +1,6 @@
 import os
 import shutil
+from hashlib import blake2b
 # import zipfile
 
 
@@ -51,6 +52,12 @@ class FileSystemUtils:
     def remove_directory(self, dir):
         if os.path.isdir(dir):
             shutil.rmtree(dir)
+
+    def file_hash(self, path, digest_size):
+        if os.path.isfile(path):
+            h = blake2b(digest_size=digest_size)
+            h.update(open(path, 'rb').read())
+            return h.hexdigest()
 
     # def make_zip(self, src, dest):
     #     if os.path.isfile(dest):

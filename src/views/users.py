@@ -1,5 +1,5 @@
 from fastapi_utils.cbv import cbv
-from fastapi import status, Depends, HTTPException
+from fastapi import status, Depends
 from fastapi.responses import JSONResponse
 from fastapi_utils.inferring_router import InferringRouter
 
