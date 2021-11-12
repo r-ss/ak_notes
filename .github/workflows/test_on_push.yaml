@@ -33,13 +33,17 @@ jobs:
         run: pwd
       - name: Print coverage report
         run: ls -la && coverage report -m
+      - name: coverage XML
+        run: coverage xml
+      - name: list directory
+        run: ls -la
       - name: Upload code coverage to codeclimate
         uses: paambaati/codeclimate-action@v3.0.0
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
         with:
           coverageLocations: |
-            ${{github.workspace}}.coverage:coverage.py
+            ${{github.workspace}}coverage.xml:coverage.py
           debug: true
       # - name: Publish code coverage
       #   uses: paambaati/codeclimate-action@v2.7.1
