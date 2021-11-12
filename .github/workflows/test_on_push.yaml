@@ -23,13 +23,13 @@ jobs:
         run: sudo mkdir -p /storage # needs for testing
       - name: Change storage dir owner
         run: sudo chown -R runner /storage
-      - name: Run tests
-        env:
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          DBHOST_DEV: ${{ secrets.DBHOST_DEV }}
-          CODECLIMATE_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
-        run: coverage run -m pytest .
-      - name: Publish code coverage
+      # - name: Run tests
+      #   env:
+      #     SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      #     DBHOST_DEV: ${{ secrets.DBHOST_DEV }}
+      #     CODECLIMATE_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
+      #   run: coverage run -m pytest .
+      - name: Test and publish code coverage
         uses: paambaati/codeclimate-action@v2.7.1
         env:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
@@ -37,5 +37,5 @@ jobs:
           CODECLIMATE_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
           CC_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
         with:
-          coverageCommand: coverage run -m pytest .
+          coverageCommand: coverage run -m pytest -vrP .
           debug: true
