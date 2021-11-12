@@ -31,7 +31,7 @@ jobs:
           CODECLIMATE_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
         run: pytest -v
       - name: Make coverage
-        run: coverage json
+        run: coverage run -m pytest .
       - name: Publish code coverage
         uses: paambaati/codeclimate-action@v3.0.0
         env:
@@ -39,5 +39,6 @@ jobs:
         with:
           coverageLocations: |
             ${{github.workspace}}/coverage.json:coverage.py
+            ${{github.workspace}}/coverage.xml:coverage.py
           # coverageCommand: coverage
           debug: true
