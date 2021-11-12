@@ -28,6 +28,7 @@ jobs:
         env:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           DBHOST_DEV: ${{ secrets.DBHOST_DEV }}
+          CODECLIMATE_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
         run: pytest -v
       - name: Test & publish code coverage
         uses: paambaati/codeclimate-action@v3.0.0
