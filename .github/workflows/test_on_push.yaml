@@ -29,3 +29,11 @@ jobs:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           DBHOST_DEV: ${{ secrets.DBHOST_DEV }}
         run: pytest -v
+      - name: Test & publish code coverage
+        uses: paambaati/codeclimate-action@v3.0.0
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
+        with:
+          coverageCommand: coverage json
+          coverageLocations: |
+            ${{github.workspace}}/coverage.json

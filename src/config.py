@@ -30,6 +30,7 @@ class Config(object):
     )
     TESTUSER = {'username':'testuser','password':'5pRHsDMXJCQ4'} # Regular user, only for tests
     TESTUSER_SUPER = {'username':'testsuperuser','password':'jePGE76QVFZY'} # Admin user, only for tests
+    CODECLIMATE_TEST_REPORTER_ID = config('CODECLIMATE_TEST_REPORTER_ID')
 
     # FORMATTERS
     DATETIME_FORMAT_TECHNICAL = '%Y-%m-%d %H:%M:%S'
