@@ -29,8 +29,8 @@ jobs:
           DBHOST_DEV: ${{ secrets.DBHOST_DEV }}
           CODECLIMATE_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
         run: pytest -vrP
-      - name: Print coverage report
-        run: ls -la && coverage report
+      # - name: Print coverage report
+      #   run: ls -la && coverage report
       - name: Publish code coverage
         uses: paambaati/codeclimate-action@v2.7.1
         env:
