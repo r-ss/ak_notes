@@ -32,7 +32,7 @@ class Config(object):
     TESTUSER_BOB = {'username':'Bob','password':'7kDMsDMXAZE8'} # Another regular user, used to check ownership
     TESTUSER_SUPER = {'username':'Jesus','password':'jePGE76QVFZY'} # Admin user, only for tests - is_superadmin is set in database
     TESTNOTE_BY_ALICE_UUID = '7bee43e5-e7e3-4be3-8a35-0f9ce3cd884b' # used in tests
-    CODECLIMATE_TEST_REPORTER_ID = config('CODECLIMATE_TEST_REPORTER_ID')
+    CODECLIMATE_TEST_REPORTER_ID = config('CODECLIMATE_TEST_REPORTER_ID', default='not available')
 
     # FORMATTERS
     DATETIME_FORMAT_TECHNICAL = '%Y-%m-%d %H:%M:%S'
