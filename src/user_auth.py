@@ -12,6 +12,11 @@ from config import Config
 
 from models.user import UserRegBM, UserTokenBM, UserTokenDataBM
 
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
+
+# from main import oauth2_scheme
+
 # import mongoengine
 # from mongoengine.queryset.visitor import Q as mongo_Q
 
@@ -37,73 +42,35 @@ def hash_password(pwd) -> str:
 router = InferringRouter()
 
 
-# async def token_required(request: Request, token: str = Header(...)):
-async def token_required(request: Request, x_token: str = Header(...)):
-
-    try:
-        if 'X-Token' in request.headers:
-            token = request.headers['X-Token']
-        else:
-            token = request.headers['Authorization']
-    except:
-        try:
-            token = await request.json()['X-Token']
-        except:
-            raise HTTPException(status_code = status.HTTP_401_UNAUTHORIZED, detail = "token required")
-            # return JSONResponse(status_code = status.HTTP_401_UNAUTHORIZED, content = {'message': 'token required'})
-
-    if token:
-        try:
-            tokendata = jwt.decode(token, Config.SECRET_KEY, algorithms=['HS256'])               
-        except jwt.exceptions.ExpiredSignatureError:
-            raise HTTPException(status_code = status.HTTP_401_UNAUTHORIZED, detail = "token has expired")
-            # return JSONResponse(status_code = status.HTTP_401_UNAUTHORIZED, content = {'message': 'token has expired'})
-        except jwt.exceptions.InvalidTokenError:
-            raise HTTPException(status_code = status.HTTP_401_UNAUTHORIZED, detail = "invalid token")
-            # return JSONResponse(status_code = status.HTTP_401_UNAUTHORIZED, content = {'message': 'invalid token'})
-
-        return 
-
-    else:
-        raise HTTPException(status_code = status.HTTP_401_UNAUTHORIZED, detail = "token required")
-        # return JSONResponse(status_code = status.HTTP_401_UNAUTHORIZED, content = {'message': 'token required'})
-
+async def token_required(token: str = Depends(oauth2_scheme)):
+    tk = jwt.decode(token, Config.SECRET_KEY, algorithms=['HS256'])  
+    return tk
 
 
 @cbv(router)
 class AuthCBV:
 
     ''' LOGIN '''
-    @router.post("/login", status_code=status.HTTP_202_ACCEPTED)
-    def login(self, user: UserRegBM):
+    @router.post("/token", status_code=status.HTTP_202_ACCEPTED)
+    def login(self, form_data: OAuth2PasswordRequestForm = Depends()):
 
-        if not user.password or not user.username:
-            return JSONResponse(
-                status_code = status.HTTP_400_BAD_REQUEST,
-                content = {'message': 'Username and password must be provided for login'}
-            )
+        if not form_data.password or not form_data.username:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username and password must be provided for login")
+        if not username_pass_regex(form_data.username):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username must be at least 4 characters and may contain . - _ chars.")
+        if not password_pass_regex(form_data.password):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password must at least 6 characters and may contain . - _ symbols")
 
-        if not username_pass_regex(user.username):
-            return JSONResponse(
-                status_code = status.HTTP_400_BAD_REQUEST,
-                content = {'message': 'Username must be at least 4 characters and may contain . - _ chars.'}
-            )
-        if not password_pass_regex(user.password):
-            return JSONResponse(
-                status_code = status.HTTP_400_BAD_REQUEST,
-                content = {'message': 'Password must at least 6 characters and may contain . - _ symbols'}
-            )
+        
 
         try:
-            db_user = User.objects.get(username = user.username)
+            db_user = User.objects.get(username = form_data.username)
             # user = User.objects.filter( mongo_Q(username = username) | mongo_Q(email = username) )[0] # useful to login by email as well by username
         except IndexError:
-            return JSONResponse(
-                status_code = status.HTTP_400_BAD_REQUEST,
-                content = {'message': 'User not found'}
-            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found")
 
-        if bcrypt.checkpw(user.password.encode('utf-8'), db_user.userhash.encode('utf-8')):
+
+        if bcrypt.checkpw(form_data.password.encode('utf-8'), db_user.userhash.encode('utf-8')):
 
             timeLimit = datetime.datetime.utcnow() + datetime.timedelta(days=30) # set token time limit
             payload = {
@@ -120,45 +87,21 @@ class AuthCBV:
 
             log.info(f'User { db_user.username } logged in')
 
-            return {
-                'auth': True,
-                'token': token, # token.decode('utf-8')
-                'user': db_user.to_json(),
-                'token_expires_at': f'{timeLimit}'
-            }
+            return {'access_token': token, 'token_type': 'bearer'}
         else:
-            return JSONResponse(
-                status_code = status.HTTP_401_UNAUTHORIZED,
-                content = {'auth': False, 'message': 'Wrong password'}
-            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wrong password")
+
 
     ''' CHECK TOKEN '''
-    @router.post("/token", status_code=status.HTTP_202_ACCEPTED)
-    def check_token(self, token: UserTokenBM):
-        try:
-            decoded_data = jwt.decode(token.token, Config.SECRET_KEY, algorithms=['HS256'])
-        except jwt.exceptions.ExpiredSignatureError:
-            return JSONResponse(
-                status_code = status.HTTP_401_UNAUTHORIZED,
-                content = {'auth': False, 'message': 'Token has expired'}
-            )
-        except:
-            return JSONResponse(
-                status_code = status.HTTP_401_UNAUTHORIZED,
-                content = {'auth': False, 'message': 'Invalid Token'}
-            )
-
-        return {
-            'resource': 'token',
-            'username': decoded_data['username'],
-            'uuid': decoded_data['uuid'],
-            'expires': datetime.datetime.fromtimestamp(decoded_data['exp']).strftime(Config.DATETIME_FORMAT_HUMAN),
-        }
+    @router.get("/check_token", status_code=status.HTTP_200_OK)
+    def check_token(self, token: UserTokenDataBM = Depends(token_required)):
+        return {'token': token}
 
     
     ''' SECRET PAGE, USED TO ENSURE TOKEN MECHANIC WORKING '''
-    @router.get("/secretpage", dependencies=[Depends(token_required)], status_code=status.HTTP_200_OK)
-    def secretpage(self):
+    # @router.get("/secretpage", dependencies=[Depends(token_required)], status_code=status.HTTP_200_OK)
+    @router.get("/secretpage", status_code=status.HTTP_200_OK)
+    def secretpage(self, token: UserTokenDataBM = Depends(token_required)):
         return {'message': 'this is secret message'}
 
 

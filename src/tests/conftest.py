@@ -4,7 +4,7 @@ from config import Config
 
 from main import testclient
 
-from tests.testutils import post
+from tests.testutils import postForm
 
 # here test users tokens will be saved after login for use in tests
 user_token_save = None
@@ -26,8 +26,8 @@ def user_token(client):
             "username": Config.TESTUSER['username'],
             "password": Config.TESTUSER['password']
         }
-        status_code, result = post(client, '/login', login_data)
-        user_token_save = result['token']
+        status_code, result = postForm(client, '/token', login_data)
+        user_token_save = result['access_token']
     return user_token_save
 
 

@@ -26,6 +26,7 @@ routers = [
 mg = mongoengine.connect(host=Config.DBHOST)
 
 app = FastAPI()
+
 testclient = TestClient(app)
 
 
@@ -44,3 +45,4 @@ def info():
 # including routes from our views
 for r in routers:
     app.include_router(r)
+

@@ -1,4 +1,4 @@
-from tests.testutils import post, get
+from tests.testutils import get, postForm
 
 from config import Config
 
@@ -10,19 +10,43 @@ def test_auth_login(client):
         'username': Config.TESTUSER['username'],
         'password': Config.TESTUSER['password']
     }
-    status_code, result = post(client, '/login', data)
-    token_save = result['token']
-    assert result['auth'] == True
+    status_code, result = postForm(client, '/token', data)
+    token_save = result['access_token']
+    # print(result)
+    assert result['token_type'] == 'bearer'
     assert status_code == 202
 
+def test_auth_bad_login(client):
+    global token_save
+    data = {
+        'username': 'sho', # too short
+        'password': 'wrong-password'
+    }
+    status_code, result = postForm(client, '/token', data)
+    assert result['detail'].startswith('Username must be at least 4 char') == True
+    assert status_code == 400
 
-def test_auth_check_token(client):
-    data = {'token': token_save}
-    status_code, result = post(client, '/token', data)
-    assert status_code == 202
+def test_auth_bad_password(client):
+    global token_save
+    data = {
+        'username': Config.TESTUSER['username'],
+        'password': 'wrong-password'
+    }
+    status_code, result = postForm(client, '/token', data)
+    assert result['detail'] == 'Wrong password'
+    assert status_code == 400
 
+def test_auth_check_token(client, user_token):
+    status_code, result = get(client, '/check_token', auth = user_token)
+    assert status_code == 200
 
-def test_auth_secret_page(client):
-    status_code, result = get(client, '/secretpage', headers={'X-Token': token_save})
+def test_auth_secret_page_via_auth_header(client):
+    status_code, result = get(client, '/secretpage', headers={'Authorization': 'bearer ' + token_save})
     assert status_code == 200
     assert result['message'] == 'this is secret message'
+
+def test_auth_secret_page_via_fixture(client, user_token):
+    status_code, result = get(client, '/secretpage', auth = user_token)
+    assert status_code == 200
+    assert result['message'] == 'this is secret message'
+    

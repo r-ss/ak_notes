@@ -4,6 +4,8 @@ import mongoengine as mongoengine
 from pydantic import BaseModel
 from typing import Optional
 
+from fastapi import Form
+
 from uuid import uuid4
 
 class User(mongoengine.Document):
@@ -32,3 +34,7 @@ class UserTokenDataBM(BaseModel): # used in functions wrapped in token_required 
     username: str
     uuid: str
     expires: str
+
+class UserLoginFormBM(BaseModel): # used in functions wrapped in token_required decorator
+    username: str = Form(...)
+    password: str = Form(...)
