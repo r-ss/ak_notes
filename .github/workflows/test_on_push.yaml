@@ -23,26 +23,25 @@ jobs:
         run: sudo mkdir -p /storage # needs for testing
       - name: Change storage dir owner
         run: sudo chown -R runner /storage
-      - name: Run tests
-        # set project secrets as env variables
-        env:
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          DBHOST_DEV: ${{ secrets.DBHOST_DEV }}
-          CODECLIMATE_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
-        run: pytest -v
-      - name: Make coverage
-        env:
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          DBHOST_DEV: ${{ secrets.DBHOST_DEV }}
-          CODECLIMATE_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
-        run: coverage run -m pytest .
+      # - name: Run tests
+      #   # set project secrets as env variables
+      #   env:
+      #     SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      #     DBHOST_DEV: ${{ secrets.DBHOST_DEV }}
+      #     CODECLIMATE_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
+      #   run: pytest -v
+      # - name: Make coverage
+      #   env:
+      #     SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      #     DBHOST_DEV: ${{ secrets.DBHOST_DEV }}
+      #     CODECLIMATE_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
+      #   run: coverage run -m pytest .
       - name: Publish code coverage
         uses: paambaati/codeclimate-action@v3.0.0
         env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DBHOST_DEV: ${{ secrets.DBHOST_DEV }}
+          CODECLIMATE_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
           CC_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
         with:
-          coverageLocations: |
-            ${{github.workspace}}/coverage.json:coverage.py
-            ${{github.workspace}}/coverage.xml:coverage.py
-          # coverageCommand: coverage
-          debug: true
+          coverageCommand: coverage run -m pytest .
