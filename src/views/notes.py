@@ -6,7 +6,6 @@ from fastapi.responses import JSONResponse
 from fastapi_utils.inferring_router import InferringRouter
 
 from models.note import Note, NoteBM, NoteExtendedBM, NoteEditBM, NoteExtendedBM, NotesBM
-from models.tag import Tag, TagBM, TagsBM
 from models.category import Category, CategoryBM, CategoriesBM
 from models.user import User, UserBM, UserTokenBM
 
@@ -74,17 +73,29 @@ class NotesCBV:
 
         owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
 
+        untouched = True
+
         if input_note.title:
             db_note.title = input_note.title
+            untouched = False
         if input_note.body:
             db_note.body = input_note.body
+            untouched = False
+        if input_note.tags:
+            db_note.tags = input_note.tags
+            untouched = False
 
-        if input_note.title or input_note.body:
+        if not untouched:
             db_note.modified = datetime.utcnow()
             db_note.save()
 
             note = NoteExtendedBM.parse_raw(db_note.to_custom_json())
             return note
+        else:
+            return JSONResponse(
+                status_code = status.HTTP_400_BAD_REQUEST,
+                content = {'message': 'No data for update'}
+            )
 
     @router.put("/notes/{note_uuid}/change-category", status_code=status.HTTP_200_OK)
     def change_note_categoru(self, note_uuid: str, new_category: CategoryBM, token: UserTokenBM = Depends(token_required)):

@@ -47,15 +47,21 @@ def test_note_read_by_bob(client, bob_token):
     assert status_code == 401
 
 def test_note_update_by_owner(client, alice_token):
+    # Title
     data = {'title': '%s_upd' % note_data_save['title']}
     status_code, result = put(client, f'/notes/{note_uuid_save}', data, auth = alice_token)
     assert result['title'] == '%s_upd' % note_data_save['title']
     assert result['body'] == note_data_save['body']
     assert status_code == 200
-
+    # Body
     data = {'body': '%s_upd' % note_data_save['body']}
     status_code, result = put(client, f'/notes/{note_uuid_save}', data, auth = alice_token)
     assert result['body'] == '%s_upd' % note_data_save['body']
+    assert status_code == 200
+    # Tags
+    data = {'tags': ['tag7', 'tag2', 'tag600']}
+    status_code, result = put(client, f'/notes/{note_uuid_save}', data, auth = alice_token)
+    assert result['tags'] == data['tags']
     assert status_code == 200
 
 def test_note_update_by_bob(client, bob_token):

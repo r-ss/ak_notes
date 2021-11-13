@@ -69,6 +69,7 @@ class NoteExtendedBM(NoteBM):
 class NoteEditBM(NoteBM):
     title: Optional[constr(max_length=50)]
     body: Optional[str]
+    tags: Optional[list]
 
 class NotesBM(BaseModel):
     __root__: List[NoteBM]    # __root__
