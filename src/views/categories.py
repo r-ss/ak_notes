@@ -28,7 +28,6 @@ class CategoriesCBV:
                 status_code = status.HTTP_404_NOT_FOUND,
                 content = {'message': 'Category does not found'}
             )
-
         category = CategoryBM.parse_raw(db_category.to_json())
         return category
 

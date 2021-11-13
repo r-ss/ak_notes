@@ -26,6 +26,10 @@ def test_filesystem(client):
     # print(len('011651d77cf25898'))
     assert h.hexdigest() == '011651d77cf25898'
 
+def test_root(client):
+    status_code, result = get(client, '/')
+    assert status_code == 200
+    assert result['message'] == 'there is no root url'
 
 def test_info(client):
     status_code, result = get(client, '/info')

@@ -15,6 +15,8 @@ from filesystem import FileSystemUtils
 fs = FileSystemUtils()
 
 class File(mongoengine.Document):
+    ''' Represents File attached to Note '''
+
     linked_to = mongoengine.ReferenceField('Note', required=True)
     uuid = mongoengine.fields.UUIDField(binary=False, default=uuid4, required=True, unique=True)
     created = mongoengine.DateTimeField(default=datetime.utcnow())

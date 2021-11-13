@@ -29,13 +29,11 @@ def test_user_create(client):
 
     user_username_save = f'user_{make_random_string(4)}'
     user_password_save = make_random_string(6)
-
     # user_username_save = Config.TESTUSER_BOB['username']
     # user_password_save = Config.TESTUSER_BOB['password']
 
     data = {'username': user_username_save, 'password': user_password_save}
     status_code, result = post(client, '/user/register', data)
-
     user_uuid_save = result['uuid']
     assert result['message'] == 'user registered'
     assert result['username'] == user_username_save
@@ -77,5 +75,4 @@ def test_user_delete_by_alice(client, alice_token):
 
 def test_user_delete_by_owner(client):
     status_code, result = delete(client, f'/user/{user_uuid_save}', auth = user_token_save)
-    # print(result, user_uuid_save, user_token_save)
     assert status_code == 204 # HTTP_204_NO_CONTENT

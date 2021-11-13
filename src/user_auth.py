@@ -47,17 +47,6 @@ def owner_or_admin_can_proceed_only(uuid: str, token: UserTokenBM):
     if not token.is_superadmin and not str(uuid) == str(token.uuid):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Seems like you are not authorized to this')
 
-    # if token.is_superadmin:
-    #     return
-    # else:
-    #     db_user = User.objects.get(uuid = uuid)
-    #     if db_user.username == token.username:
-    #         return
-
-    # raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Seems like you are not authorized to this')
-
-
-
 
 async def token_required(token: str = Depends(oauth2_scheme)):
     dict = jwt.decode(token, Config.SECRET_KEY, algorithms=['HS256'])
@@ -117,7 +106,6 @@ class AuthCBV:
 
     
     ''' SECRET PAGE, USED TO ENSURE TOKEN MECHANIC WORKING '''
-    # @router.get("/secretpage", dependencies=[Depends(token_required)], status_code=status.HTTP_200_OK)
     @router.get("/secretpage", status_code=status.HTTP_200_OK)
     def secretpage(self, token: UserTokenBM = Depends(token_required)):
         return {'message': 'this is secret message'}

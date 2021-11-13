@@ -5,9 +5,10 @@ from pydantic import BaseModel
 
 
 class Category(mongoengine.Document):
+    ''' Represents Note Category. Like Default / Work / Personal etc '''
+    
     numerical_id = mongoengine.SequenceField(unique=True)
     name = mongoengine.StringField(max_length=32)
-
 
     def choose_default():
         # When note created, default category will be choosed for it and can be changed later

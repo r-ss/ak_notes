@@ -18,12 +18,10 @@ def test_categories_count(client, alice_token):
 def test_category_create(client, alice_token):
     global category_numerical_id_save
     global category_name_save
-
     category_name_save = f'new_category_{ make_random_string(4) }'
     data = {'name': category_name_save}
     status_code, result = post(client, '/categories', data, auth = alice_token)
     category_numerical_id_save = int(result['numerical_id'])
-
     assert result['name'] == category_name_save
     assert status_code == 201 # HTTP_201_CREATED
 

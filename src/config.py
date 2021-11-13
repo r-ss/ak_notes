@@ -45,4 +45,5 @@ class Config(object):
         'UPLOADS': '%s/uploads/' % os.path.split(BASE_DIR)[0]
     }
 
+    # MISC
     HASH_DIGEST_SIZE = 8 # for hashing files with blake2b

@@ -41,7 +41,7 @@ Lint:
 ```sh
 oitnb --exclude testutils\.py src
 ```
-<small>one file here goes to exclude because it contains new python 3.10 match method which don't supported by linter yet.</small>
+one file here goes to exclude because it contains new python 3.10 match method which don't supported by linter yet.
 
 Test:
 ```sh
@@ -56,4 +56,12 @@ uvicorn main:app --reload --app-dir src
 ## What to discuss
 
 1. Which pattern I got? MVC, MVP? or MVS? (Model-View-Shit)
-2. 
+2. When files will be saved in AWS instead of local filesystem, can we call application as "stateless"?
+3. Why is "bad" have some logic in views?
+
+## TODO
+
+1. Save files in a cloud instead of local disk
+2. On note deletion also remove all assotiated files
+3. JSON parsing-unparsing in a some views does not looks good - needs to be refactored
+4. Some restrictions for file uploads - by extension / mime-type / size

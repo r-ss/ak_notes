@@ -15,24 +15,11 @@ def singleton(cls, *args, **kw):
 @singleton
 class RessLogger(object):
 
-    dtformat = '%d.%m.%Y %H:%M:%S'
-
     @property
     def time(self) -> str:
-        return datetime.utcnow().strftime(self.dtformat)
+        return datetime.utcnow().strftime(Config.DATETIME_FORMAT_HUMAN)
 
     def info(self, msg) -> None:
         if not Config.TESTING_MODE:
             print('resslogger, %s - info - %s' % (self.time, msg))
-
-            # if Config.PRODUCTION:
-            #     if not 'by user ress' in msg: # don't send telegram for actions made by myself
-            #         try:
-            #             sendTelegram(msg)
-            #         except:
-            #             pass
-
-    # def error(self, msg):
-    #     dt = datetime.now().strftime(self.dtformat)     
-    #     print('mylog, %s - error - %s' % (dt, msg))
     

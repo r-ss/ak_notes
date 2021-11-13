@@ -1,6 +1,5 @@
 import os
-import json
-from tests.testutils import post, get, put, delete, postFiles
+from tests.testutils import get, put, delete, postFiles
 
 from config import Config
 
@@ -19,18 +18,10 @@ def test_files_count(client, alice_token):
 
 def test_files_create(client, alice_token):
     global uploaded_files
-
     path1 = os.path.join(Config.TESTING_ASSETS_PATH, 'lambo.png')
     path2 = os.path.join(Config.TESTING_ASSETS_PATH, 'book.txt')
-
-    # file_name_save = f'new_file_{ make_random_string(4) }'
     status_code, result = postFiles(client, f'/notes/{Config.TESTNOTE_BY_ALICE_UUID}/create-file', [path1,path2], auth=alice_token)
-    # file_numerical_id_save = int(result['id'])
-
-    # print(result)
     uploaded_files = result
-
-    # assert result['name'] == file_name_save
     assert status_code == 201 # HTTP_201_CREATED
 
 def test_files_list_for_user(client, alice_token):
@@ -40,12 +31,9 @@ def test_files_list_for_user(client, alice_token):
     assert len(result) == files_count + len(uploaded_files)
 
 def test_files_list_for_note(client, alice_token):
-    # global uploaded_files
     status_code, result = get(client, f'/files/for-note/{Config.TESTNOTE_BY_ALICE_UUID}', auth=alice_token)
-    # print(result)
     assert status_code == 200
     assert len(result) == files_count + len(uploaded_files)
-
 
 
 def test_files_specific_by_owner(client, alice_token):

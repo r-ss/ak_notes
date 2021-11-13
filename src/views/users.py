@@ -7,10 +7,7 @@ from fastapi_utils.inferring_router import InferringRouter
 # exception mongoengine.errors.NotUniqueError upon duplicate user reg
 import mongoengine as mongoengine
 
-
-
 from models.user import User, UserBM, UserRegBM, UserTokenBM
-
 from user_auth import hash_password, username_pass_regex, password_pass_regex, token_required, owner_or_admin_can_proceed_only
 
 router = InferringRouter()
@@ -69,13 +66,6 @@ class UsersCBV:
                 }
             )
 
-
-        # # db_user = User(username = user.username).save()
-        # user = UserBM.parse_raw(db_user.to_json())
-
-
-        # return user
-
     ''' READ '''
     @router.get("/user/{uuid}")
     def read(self, uuid: str):
@@ -98,7 +88,6 @@ class UsersCBV:
         db_user = User.objects.get(uuid = uuid)
 
         owner_or_admin_can_proceed_only(uuid, token)
-
         
         db_user.username = user.username
         db_user.save()
@@ -115,17 +104,10 @@ class UsersCBV:
     def delete(self, uuid: str, token: UserTokenBM = Depends(token_required)):
 
         db_user = User.objects.get(uuid = uuid)
-
-
         owner_or_admin_can_proceed_only(uuid, token)
-        # if not token.is_superadmin and not str(db_user.uuid) == str(token.uuid):
-        #     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Seems like you are not authorized to this')
-
-        
-
+     
         user = UserBM.parse_raw(db_user.to_json())
         db_user.delete()
-
         return JSONResponse(
             status_code = status.HTTP_204_NO_CONTENT,
             content = {'message': f'User "{user.username}" deleted'}

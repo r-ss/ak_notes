@@ -2,7 +2,7 @@ import os
 import json
 
 
-def routine(client, method = 'get', url = '/empty', data = None, headers = None, auth = None):
+def dispatcher(client, method='get', url='/empty', data=None, headers=None, auth=None):
 
     if auth and not headers:
         headers = {'Authorization': 'bearer ' + auth}
@@ -36,28 +36,31 @@ def routine(client, method = 'get', url = '/empty', data = None, headers = None,
                     files_data.append(item)
 
             response = client.post(url, files=files_data, headers=headers)
-        case _: # default 'get'
+        case _:  # default 'get'
             response = client.get(url, headers=headers)
 
-    
     return response.status_code, response.json()
 
 
+def get(client, url, headers=None, auth=None):
+    return dispatcher(client, 'get', url, None, headers, auth)
 
-def get(client, url, headers = None, auth = None):
-    return routine(client, 'get', url, None, headers, auth)
 
-def post(client, url, data, headers = None, auth = None):
-    return routine(client, 'post', url, data, headers, auth)
+def post(client, url, data, headers=None, auth=None):
+    return dispatcher(client, 'post', url, data, headers, auth)
 
-def put(client, url, data, headers = None, auth = None):
-    return routine(client, 'put', url, data, headers, auth)
 
-def delete(client, url, headers = None, auth = None):
-    return routine(client, 'delete', url, None, headers, auth)
+def put(client, url, data, headers=None, auth=None):
+    return dispatcher(client, 'put', url, data, headers, auth)
 
-def postFiles(client, url, files, headers = None, auth = None):
-    return routine(client, 'files', url, files, headers, auth)
 
-def postForm(client, url, data, headers = None, auth = None):
-    return routine(client, 'form', url, data, headers, auth)
+def delete(client, url, headers=None, auth=None):
+    return dispatcher(client, 'delete', url, None, headers, auth)
+
+
+def postFiles(client, url, files, headers=None, auth=None):
+    return dispatcher(client, 'files', url, files, headers, auth)
+
+
+def postForm(client, url, data, headers=None, auth=None):
+    return dispatcher(client, 'form', url, data, headers, auth)
