@@ -83,7 +83,7 @@ class FilesCBV:
         return uploaded_files
 
     ''' READ '''
-    @router.get("/files/{uuid}")
+    @router.get("/files/read/{uuid}")
     def read(self, uuid: str, token: UserTokenBM = Depends(token_required)):
 
         try:
@@ -105,18 +105,23 @@ class FilesCBV:
     # return FileResponse(path)
 
     @router.get("/files/for-note/{note_uuid}")
-    def read_all(self, note_uuid:str, token:UserTokenBM = Depends(token_required)):
+    def read_all_for_note(self, note_uuid:str, token:UserTokenBM = Depends(token_required)):
 
-        db_note = Note.objects.get(uuid = uuid)
+        db_note = Note.objects.get(uuid = note_uuid)
         owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
 
         db_files = File.objects.filter(linked_to = db_note)
 
-        files = FilesBM.parse_raw(db_files.to_json())
+        # TODO - Refactor following parse-unparse shit
+        j = []
+        for n in db_files:
+            j.append( json.loads(n.to_custom_json()) )
+
+        files = FilesBM.parse_obj(j)
         return files
 
-    @router.get("/files")
-    def read_all(self, token: UserTokenBM = Depends(token_required)):
+    @router.get("/files/for-user")
+    def read_all_for_user(self, token: UserTokenBM = Depends(token_required)):
         ''' read all files owned by current user '''
 
         # print(token.uuid)

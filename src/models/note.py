@@ -24,7 +24,6 @@ class Note(mongoengine.Document):
     title = mongoengine.StringField(max_length=50)
     body = mongoengine.StringField(required=True)
     owner = mongoengine.ReferenceField('User', required=True)
-    files = mongoengine.ListField()
     category = mongoengine.ReferenceField('Category', required=True)
     tags = mongoengine.ListField()
 
@@ -62,7 +61,7 @@ class NoteBM(BaseModel):
 # Used on json output
 class NoteExtendedBM(NoteBM):
     owner: Optional[UserBM]
-    files: Optional[list]
+    # files: Optional[list]
     category: Optional[CategoryBM]
     tags: Optional[list]
 

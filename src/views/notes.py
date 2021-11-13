@@ -19,18 +19,18 @@ class NotesCBV:
 
     ''' CREATE '''
     @router.post("/notes", status_code=status.HTTP_201_CREATED)
-    def create(self, note: NoteBM, token: UserTokenBM = Depends(token_required)):
+    def create(self, note: NoteExtendedBM, token: UserTokenBM = Depends(token_required)):
 
         db_user = User.objects.get(uuid = token.uuid)
 
-        # TODO - cetegory assign
-        cat = Category.objects.get(numerical_id = 5)
+        cat = Category.choose_default()
 
         db_note = Note(
             title = note.title,
             body = note.body,
             owner = db_user,
-            category = cat
+            category = cat,
+            tags = note.tags
         )
         db_note.save()
         note = NoteExtendedBM.parse_raw(db_note.to_custom_json())
@@ -68,15 +68,31 @@ class NotesCBV:
         return notes
 
     ''' UPDATE '''
-    @router.put("/notes/{uuid}", status_code=status.HTTP_200_OK)
-    def update(self, uuid: str, note: NoteEditBM, token: UserTokenBM = Depends(token_required)):
-        db_note = Note.objects.get(uuid = uuid)
+    @router.put("/notes/{note_uuid}", status_code=status.HTTP_200_OK)
+    def update(self, note_uuid: str, input_note: NoteEditBM, token: UserTokenBM = Depends(token_required)):
+        db_note = Note.objects.get(uuid = note_uuid)
 
         owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
 
-        db_note.title = note.title
-        # db_note.body = note.body
-        db_note.modified = datetime.utcnow()
+        if input_note.title:
+            db_note.title = input_note.title
+        if input_note.body:
+            db_note.body = input_note.body
+
+        if input_note.title or input_note.body:
+            db_note.modified = datetime.utcnow()
+            db_note.save()
+
+            note = NoteExtendedBM.parse_raw(db_note.to_custom_json())
+            return note
+
+    @router.put("/notes/{note_uuid}/change-category", status_code=status.HTTP_200_OK)
+    def change_note_categoru(self, note_uuid: str, new_category: CategoryBM, token: UserTokenBM = Depends(token_required)):
+        db_note = Note.objects.get(uuid = note_uuid)
+        owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
+
+        db_category = Category.objects.get(numerical_id = new_category.numerical_id)
+        db_note.category = db_category
         db_note.save()
 
         note = NoteExtendedBM.parse_raw(db_note.to_custom_json())

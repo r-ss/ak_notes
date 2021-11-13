@@ -13,7 +13,7 @@ uploaded_files = None
 
 def test_files_count(client, alice_token):
     global files_count  # TODO - is it possible to save variable for another test cases without "global" keyword?
-    status_code, result = get(client, '/files', auth=alice_token)
+    status_code, result = get(client, '/files/for-user', auth=alice_token)
     files_count = len(result)
     assert status_code == 200
 
@@ -33,21 +33,30 @@ def test_files_create(client, alice_token):
     # assert result['name'] == file_name_save
     assert status_code == 201 # HTTP_201_CREATED
 
-def test_files_list(client, alice_token):
+def test_files_list_for_user(client, alice_token):
     global uploaded_files
-    status_code, result = get(client, '/files', auth=alice_token)
+    status_code, result = get(client, '/files/for-user', auth=alice_token)
     assert status_code == 200
     assert len(result) == files_count + len(uploaded_files)
 
+def test_files_list_for_note(client, alice_token):
+    # global uploaded_files
+    status_code, result = get(client, f'/files/for-note/{Config.TESTNOTE_BY_ALICE_UUID}', auth=alice_token)
+    # print(result)
+    assert status_code == 200
+    assert len(result) == files_count + len(uploaded_files)
+
+
+
 def test_files_specific_by_owner(client, alice_token):
     global uploaded_files
-    status_code, result = get(client, f"/files/{uploaded_files[0]['uuid']}", auth=alice_token)
+    status_code, result = get(client, f"/files/read/{uploaded_files[0]['uuid']}", auth=alice_token)
     assert result['uuid'] == uploaded_files[0]['uuid']
     assert status_code == 200
 
 def test_files_specific_by_bob(client, bob_token):
     global uploaded_files
-    status_code, result = get(client, f"/files/{uploaded_files[0]['uuid']}", auth=bob_token)
+    status_code, result = get(client, f"/files/read/{uploaded_files[0]['uuid']}", auth=bob_token)
     assert status_code == 401
 
 def test_file_update(client, alice_token):
@@ -68,11 +77,13 @@ def test_files_delete_by_owner(client, alice_token):
         assert status_code == 204
 
 def test_file_after_delete(client, alice_token):
-    status_code, result = get(client, f'/files/{file_numerical_id_save}', auth=alice_token)
-    assert status_code == 404
+    global uploaded_files
+    for file in uploaded_files:
+        status_code, result = get(client, '/files/read/%s' % file['uuid'], auth=alice_token)
+        assert status_code == 404
 
 def test_files_list_again(client, alice_token):
     global uploaded_files
-    status_code, result = get(client, '/files', auth=alice_token)
+    status_code, result = get(client, '/files/for-user', auth=alice_token)
     assert status_code == 200
     assert len(result) == files_count

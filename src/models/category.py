@@ -9,9 +9,14 @@ class Category(mongoengine.Document):
     name = mongoengine.StringField(max_length=32)
 
 
+    def choose_default():
+        # When note created, default category will be choosed for it and can be changed later
+        return Category.objects.first()
+
+
 class CategoryBM(BaseModel):
     numerical_id: Optional[int]
-    name: str
+    name: Optional[str]
 
 
 class CategoriesBM(BaseModel):
