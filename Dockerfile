@@ -10,7 +10,7 @@ RUN pip install -r requirements.txt
 # RUN make /app
 # ENV PORT 5000
 
-ENTRYPOINT uvicorn main:app --app-dir src
+ENTRYPOINT exec uvicorn main:app --port 5001 --app-dir src
 
 
 # TUTORIALS

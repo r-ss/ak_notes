@@ -32,16 +32,16 @@ SECRET_KEY as string
 DBHOST_DEV as mongodb+srv URI with database credentials
 ```
 
-Style Guide check:
-```sh
-flake8
-```
-
 Lint:
 ```sh
 oitnb --exclude testutils\.py src
 ```
 one file here goes to exclude because it contains new python 3.10 match method which don't supported by linter yet.
+
+Style Guide check:
+```sh
+flake8
+```
 
 Test:
 ```sh

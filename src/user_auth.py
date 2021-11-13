@@ -61,12 +61,15 @@ class AuthCBV:
     @router.post('/token', status_code=status.HTTP_202_ACCEPTED)
     def login(self, form_data: OAuth2PasswordRequestForm = Depends()):
 
+        def bad_req(msg: str):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+
         if not form_data.password or not form_data.username:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Username and password must be provided for login')
+            bad_req('Username and password must be provided for login')
         if not username_pass_regex(form_data.username):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Username must be at least 3 characters and may contain . - _ chars.')
+            bad_req('Username must be at least 3 characters and may contain . - _ chars.')
         if not password_pass_regex(form_data.password):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Password must at least 6 characters and may contain . - _ symbols')
+            bad_req('Password must at least 6 characters and may contain . - _ symbols')
 
         
 

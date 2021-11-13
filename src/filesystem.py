@@ -73,9 +73,8 @@ class FileSystemUtils:
         shutil.move(src, dst)
 
     def copy(self, src, dest, rewrite = False, ignore = False):
-        if os.path.isdir(dest):
-            if rewrite:
-                shutil.rmtree(dest)
+        if os.path.isdir(dest) and rewrite:
+            shutil.rmtree(dest)
 
         try:
             if ignore:
