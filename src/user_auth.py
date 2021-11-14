@@ -1,51 +1,47 @@
 import datetime
-from fastapi_utils.cbv import cbv
-from fastapi import status, Request, Depends, Header, HTTPException
-from fastapi.responses import JSONResponse
-from fastapi_utils.inferring_router import InferringRouter
-from re import compile
-
 import bcrypt
 import jwt
-
-from config import Config
+from re import compile
+from fastapi_utils.cbv import cbv
+from fastapi import status, Depends, HTTPException
+from fastapi_utils.inferring_router import InferringRouter
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from models.user import User, UserTokenBM
-
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
-
-# from main import oauth2_scheme
-
-# import mongoengine
-# from mongoengine.queryset.visitor import Q as mongo_Q
-
-from models.user import User
+from config import Config
 
 from resslogger import RessLogger
 log = RessLogger()
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
+
+router = InferringRouter()
+
 USERNAME_REGEX = compile(r'\A[\w\-\.]{3,}\Z')
 PASSWORD_REGEX = compile(r'\A[\w\-\.]{6,}\Z')
+
 
 # checking username for valid characters
 def username_pass_regex(username):
     return USERNAME_REGEX.match(username) is not None
+
+
 def password_pass_regex(password):
     return PASSWORD_REGEX.match(password) is not None
+
 
 def hash_password(pwd) -> str:
     pwd = pwd.encode('utf-8')
     salt = bcrypt.gensalt()
     return bcrypt.hashpw(pwd, salt).decode('utf-8')
 
-router = InferringRouter()
-
-
 
 def owner_or_admin_can_proceed_only(uuid: str, token: UserTokenBM):
     if not token.is_superadmin and not str(uuid) == str(token.uuid):
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Seems like you are not authorized to this')
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Seems like you are not authorized to this',
+        )
 
 
 async def token_required(token: str = Depends(oauth2_scheme)):
@@ -57,10 +53,10 @@ async def token_required(token: str = Depends(oauth2_scheme)):
 @cbv(router)
 class AuthCBV:
 
-    ''' LOGIN '''
+    """ LOGIN """
+
     @router.post('/token', status_code=status.HTTP_202_ACCEPTED)
     def login(self, form_data: OAuth2PasswordRequestForm = Depends()):
-
         def bad_req(msg: str):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
 
@@ -71,23 +67,26 @@ class AuthCBV:
         if not password_pass_regex(form_data.password):
             bad_req('Password must at least 6 characters and may contain . - _ symbols')
 
-        
-
         try:
-            db_user = User.objects.get(username = form_data.username)
+            db_user = User.objects.get(username=form_data.username)
             # user = User.objects.filter( mongo_Q(username = username) | mongo_Q(email = username) )[0] # useful to login by email as well by username
         except IndexError:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail='User not found'
+            )
 
+        if bcrypt.checkpw(
+            form_data.password.encode('utf-8'), db_user.userhash.encode('utf-8')
+        ):
 
-        if bcrypt.checkpw(form_data.password.encode('utf-8'), db_user.userhash.encode('utf-8')):
-
-            timeLimit = datetime.datetime.utcnow() + datetime.timedelta(days=30) # set token time limit
+            timeLimit = datetime.datetime.utcnow() + datetime.timedelta(
+                days=30
+            )  # set token time limit
             payload = {
                 'username': db_user.username,
                 'uuid': str(db_user.uuid),
                 'is_superadmin': db_user.is_superadmin,
-                'expires': str(timeLimit)
+                'expires': str(timeLimit),
             }
             # encrypt payload into token
             token = jwt.encode(payload, Config.SECRET_KEY, algorithm='HS256')
@@ -99,18 +98,18 @@ class AuthCBV:
 
             return {'access_token': token, 'token_type': 'bearer'}
         else:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Wrong password")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail='Wrong password'
+            )
 
+    """ CHECK TOKEN """
 
-    ''' CHECK TOKEN '''
-    @router.get("/check_token", status_code=status.HTTP_200_OK)
+    @router.get('/check_token', status_code=status.HTTP_200_OK)
     def check_token(self, token: UserTokenBM = Depends(token_required)):
         return {'token': token}
 
-    
-    ''' SECRET PAGE, USED TO ENSURE TOKEN MECHANIC WORKING '''
-    @router.get("/secretpage", status_code=status.HTTP_200_OK)
+    """ SECRET PAGE, USED TO ENSURE TOKEN MECHANIC WORKING """
+
+    @router.get('/secretpage', status_code=status.HTTP_200_OK)
     def secretpage(self, token: UserTokenBM = Depends(token_required)):
         return {'message': 'this is secret message'}
-
-

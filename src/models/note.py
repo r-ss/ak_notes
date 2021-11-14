@@ -1,6 +1,7 @@
 from typing import Optional, List
 import datetime
 import mongoengine as mongoengine
+
 # import mongoengine_goodjson as gj # to follow linked objects on json output
 
 from uuid import uuid4
@@ -14,10 +15,9 @@ from config import Config
 
 import json
 
-# заметка имеет поля заголовок, тело (markdown), теги (список), owner, id (uuid), category_id, shortbody (для списка), files
 
 class Note(mongoengine.Document):
-    ''' Represents short text Note
+    """ Represents short text Note
         Main fields here are titile and body
         Note shoud have single category Like Default / Work / Personal etc
         Category can be changed after note creation
@@ -27,7 +27,7 @@ class Note(mongoengine.Document):
 
         Note can be deleted
         TODO - remove assotiated with note files on deletion
-    '''
+    """
 
     numerical_id = mongoengine.SequenceField(unique=True)
     uuid = mongoengine.fields.UUIDField(binary=False, default=uuid4, required=True)
@@ -43,18 +43,15 @@ class Note(mongoengine.Document):
     def shortbody(self) -> str:
         return self.body[0:64]
 
-    meta = {
-        'ordering': ['-id']
-    }
+    meta = {'ordering': ['-id']}
 
     def to_custom_json(self) -> str:
-        data = json.loads(self.to_json())      
+        data = json.loads(self.to_json())
         data['owner'] = json.loads(self.owner.to_json())
         data['category'] = json.loads(self.category.to_json())
-        data['created'] = self.created.strftime( Config.DATETIME_FORMAT_TECHNICAL )
-        data['modified'] = self.modified.strftime( Config.DATETIME_FORMAT_TECHNICAL )
+        data['created'] = self.created.strftime(Config.DATETIME_FORMAT_TECHNICAL)
+        data['modified'] = self.modified.strftime(Config.DATETIME_FORMAT_TECHNICAL)
         return json.dumps(data)
-
 
 
 # Base model frame
@@ -65,10 +62,7 @@ class NoteBM(BaseModel):
     modified: Optional[datetime.datetime]
     title: constr(max_length=50)
     body: str
-    # owner: Optional[UserBM]
-    # files: Optional[list]
-    # category: Optional[CategoryBM]
-    # tags: Optional[list]
+
 
 # Used on json output
 class NoteExtendedBM(NoteBM):
@@ -77,14 +71,17 @@ class NoteExtendedBM(NoteBM):
     category: Optional[CategoryBM]
     tags: Optional[List[str]]
 
+
 # Usen upon note update - added Optional fields
 class NoteEditBM(NoteBM):
     title: Optional[constr(max_length=50)]
     body: Optional[str]
     tags: Optional[list]
 
+
 class NotesBM(BaseModel):
-    __root__: List[NoteBM]    # __root__
+    __root__: List[NoteBM]  # __root__
+
 
 class NotesExtendedBM(BaseModel):
-    __root__: List[NoteExtendedBM]    # __root__
+    __root__: List[NoteExtendedBM]  # __root__

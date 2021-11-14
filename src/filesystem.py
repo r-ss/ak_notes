@@ -1,11 +1,11 @@
 import os
 import shutil
 from hashlib import blake2b
+
 # import zipfile
 
 
 class FileSystemUtils:
-
     def is_file_exist(self, path):
         if os.path.isfile(path) or os.path.isdir(path):
             return True
@@ -14,7 +14,6 @@ class FileSystemUtils:
 
     def check_dir(self, dir):
         if not os.path.isdir(dir):
-            # os.mkdir(dir)
             os.makedirs(dir)
 
     # def listdir(self, dir):
@@ -44,7 +43,7 @@ class FileSystemUtils:
     #         if not name.startswith('.'):
     #             data.append(dct)
     #     return data
-    
+
     def delete_file(self, path):
         if os.path.isfile(path):
             os.remove(path)
@@ -72,18 +71,18 @@ class FileSystemUtils:
     def move_file(self, src, dst):
         shutil.move(src, dst)
 
-    def copy(self, src, dest, rewrite = False, ignore = False):
-        if os.path.isdir(dest) and rewrite:
-            shutil.rmtree(dest)
+    # def copy(self, src, dest, rewrite = False, ignore = False):
+    #     if os.path.isdir(dest) and rewrite:
+    #         shutil.rmtree(dest)
 
-        try:
-            if ignore:
-                shutil.copytree(src, dest, ignore=shutil.ignore_patterns('.*'))
-            else:
-                shutil.copytree(src, dest)
-        except OSError as e:
-            # If the error was caused because the source wasn't a directory
-            if e.errno == 20:
-                shutil.copy(src, dest)
-            else:
-                raise Exception('Directory not copied. Error: %s' % e)
+    #     try:
+    #         if ignore:
+    #             shutil.copytree(src, dest, ignore=shutil.ignore_patterns('.*'))
+    #         else:
+    #             shutil.copytree(src, dest)
+    #     except OSError as e:
+    #         # If the error was caused because the source wasn't a directory
+    #         if e.errno == 20:
+    #             shutil.copy(src, dest)
+    #         else:
+    #             raise Exception('Directory not copied. Error: %s' % e)

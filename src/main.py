@@ -28,19 +28,17 @@ app = FastAPI()
 testclient = TestClient(app)
 
 
-##############################
 # just two default routes here
 @app.get('/')
 def read_root():
-    return {'message':'there is no root url'}
+    return {'message': 'there is no root url'}
+
 
 @app.get('/info', summary='Returns basic env and system information')
 def info():
     return Info().get()
-##############################
 
 
 # including routes from our views
 for r in routers:
     app.include_router(r)
-

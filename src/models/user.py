@@ -8,8 +8,10 @@ from fastapi import Form
 
 from uuid import uuid4
 
+
 class User(mongoengine.Document):
-    ''' Represents user '''
+    """ Represents user """
+
     uuid = mongoengine.fields.UUIDField(binary=False, default=uuid4, required=True)
     username = mongoengine.StringField(required=True, unique=True)
     # email = mongoengine.EmailField(required=True, unique=True)
@@ -24,16 +26,18 @@ class UserBM(BaseModel):
     username: str
     is_superadmin: Optional[bool] = False
 
-class UserRegBM(UserBM): # used upon user registeration
-    password: Optional[str] 
+
+class UserRegBM(UserBM):  # used upon user registeration
+    password: Optional[str]
 
 
-class UserTokenBM(BaseModel): # used in token_required 
+class UserTokenBM(BaseModel):  # used in token_required
     username: str
     uuid: str
     is_superadmin: bool
     expires: str
 
-class UserLoginFormBM(BaseModel): # used upon login
+
+class UserLoginFormBM(BaseModel):  # used upon login
     username: str = Form(...)
     password: str = Form(...)

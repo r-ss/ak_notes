@@ -11,8 +11,9 @@ token_alice_save = None
 token_bob_save = None
 token_super_save = None
 
+
 @pytest.fixture
-def client():    
+def client():
     Config.TESTING_MODE = True
     return testclient
 
@@ -24,8 +25,8 @@ def alice_token(client):
     # send login request only on first call
     if not token_alice_save:
         login_data = {
-            "username": Config.TESTUSER_ALICE['username'],
-            "password": Config.TESTUSER_ALICE['password']
+            'username': Config.TESTUSER_ALICE['username'],
+            'password': Config.TESTUSER_ALICE['password'],
         }
         status_code, result = postForm(client, '/token', login_data)
         token_alice_save = result['access_token']
@@ -38,12 +39,13 @@ def bob_token(client):
 
     if not token_bob_save:
         login_data = {
-            "username": Config.TESTUSER_BOB['username'],
-            "password": Config.TESTUSER_BOB['password']
+            'username': Config.TESTUSER_BOB['username'],
+            'password': Config.TESTUSER_BOB['password'],
         }
         status_code, result = postForm(client, '/token', login_data)
         token_bob_save = result['access_token']
     return token_bob_save
+
 
 @pytest.fixture
 def super_token(client):
@@ -51,8 +53,8 @@ def super_token(client):
 
     if not token_super_save:
         login_data = {
-            "username": Config.TESTUSER_SUPER['username'],
-            "password": Config.TESTUSER_SUPER['password']
+            'username': Config.TESTUSER_SUPER['username'],
+            'password': Config.TESTUSER_SUPER['password'],
         }
         status_code, result = postForm(client, '/token', login_data)
         token_super_save = result['access_token']

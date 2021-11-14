@@ -12,13 +12,17 @@ from pydantic import BaseModel
 from config import Config
 
 from filesystem import FileSystemUtils
+
 fs = FileSystemUtils()
 
+
 class File(mongoengine.Document):
-    ''' Represents File attached to Note '''
+    """ Represents File attached to Note """
 
     linked_to = mongoengine.ReferenceField('Note', required=True)
-    uuid = mongoengine.fields.UUIDField(binary=False, default=uuid4, required=True, unique=True)
+    uuid = mongoengine.fields.UUIDField(
+        binary=False, default=uuid4, required=True, unique=True
+    )
     created = mongoengine.DateTimeField(default=datetime.utcnow())
     filename = mongoengine.StringField(max_length=256)
     hash = mongoengine.StringField(max_length=16)
@@ -31,7 +35,7 @@ class File(mongoengine.Document):
     @property
     def is_file_exist(self) -> bool:
         return fs.is_file_exist(self.path)
-    
+
     def remove_from_filesystem(self) -> None:
         fs.delete_file(self.path)
 
@@ -54,7 +58,7 @@ class File(mongoengine.Document):
         return False
 
     def to_custom_json(self) -> str:
-        data = json.loads(self.to_json())      
+        data = json.loads(self.to_json())
         data['linked_to'] = json.loads(self.linked_to.to_custom_json())
         data['owner'] = json.loads(self.owner.to_json())
         return json.dumps(data)
@@ -69,7 +73,8 @@ class FileBM(BaseModel):
 
 
 class FilesBM(BaseModel):
-    __root__: List[FileBM]    # __root__
+    __root__: List[FileBM]  # __root__
+
 
 class FileEditBM(BaseModel):
-    filename: str # yep, only filename can be changed
+    filename: str  # yep, only filename can be changed
