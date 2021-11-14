@@ -1,6 +1,7 @@
 # ak_notes
 
-Backend for hypothetical Notes app as part of Artur Karapetov's assignment as a practice with FastAPI and Pydantic.  
+Backend for hypothetical Notes  
+Part of Artur Karapetov's assignment as a practice with FastAPI and Pydantic.  
 This project requires Python 3.10  
 Free tier of MongoDB Atlas used here
 
@@ -63,6 +64,6 @@ uvicorn main:app --reload --app-dir src
 
 1. Save files in a cloud instead of local disk
 2. On note deletion also remove all assotiated files
-3. CI/CD. Currently docker build and docker run trinnerg manually
+3. CI/CD. Currently docker build and docker run trinners manually
 3. JSON parsing-unparsing in a some views does not looks good - needs to be refactored
 4. Some restrictions for file uploads - by extension / mime-type / size
