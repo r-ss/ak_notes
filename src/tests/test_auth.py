@@ -13,7 +13,6 @@ def test_auth_login(client):
     }
     status_code, result = postForm(client, '/token', data)
     token_save = result['access_token']
-    # print(result)
     assert result['token_type'] == 'bearer'
     assert status_code == 202
 

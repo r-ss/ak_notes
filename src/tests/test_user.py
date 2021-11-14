@@ -2,7 +2,7 @@ from tests.testutils import post, get, put, delete, postForm
 
 # from config import Config
 
-from utils import make_random_string
+from services.utils import make_random_string
 
 user_uuid_save = None  # will save id upon user creation for tests and remove user by id after all
 user_username_save = None

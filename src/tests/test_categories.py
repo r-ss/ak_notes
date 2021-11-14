@@ -2,7 +2,7 @@ from tests.testutils import post, get, put, delete
 
 # from config import Config
 
-from utils import make_random_string
+from services.utils import make_random_string
 
 category_numerical_id_save = None  # will save id upon category creation for tests and remove category by id after all
 category_name_save = None

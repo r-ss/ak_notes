@@ -1,4 +1,5 @@
 import os
+import datetime
 from decouple import config
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -41,17 +42,16 @@ class Config(object):
     STORAGE = {'ROOT': STORAGEROOT, 'UPLOADS': '%s/uploads/' % os.path.split(BASE_DIR)[0]}
 
     # AUTHENTICATION
-    AUTH_USERNAME = {
+    AUTH_USERNAME_REGEX = {
         'regex': r'\A[\w\-\.]{3,}\Z',
         'failmessage': 'Username must be at least 3 characters and may contain . - _ chars.'  # also can be used as hint
     }
-    AUTH_PASSWORD = {
+    AUTH_PASSWORD_REGEX = {
         'regex': r'\A[\w\-\.]{6,}\Z',
         'failmessage': 'Password must at least 6 characters and may contain . - _ symbols'  # also can be used as hint
     }
     AUTH_HASHING_ALGORITHM = 'HS256'  # algorithm to encode/decode JWT user tokens
-
-
+    AUTH_TOKEN_EXPIRATION_TIME = datetime.timedelta(days=30)
 
     # MISC
     HASH_DIGEST_SIZE = 8  # for hashing files with blake2b

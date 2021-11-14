@@ -3,16 +3,13 @@ from fastapi import status, Depends
 from fastapi.responses import JSONResponse
 from fastapi_utils.inferring_router import InferringRouter
 
-# Following mongoengine import needed here just once for catch
-# exception mongoengine.errors.NotUniqueError upon duplicate user reg
-import mongoengine as mongoengine
-
-from models.user import User, UserBM, UserRegBM, UserTokenBM
-from user_auth import hash_password, username_pass_regex, password_pass_regex, token_required, owner_or_admin_can_proceed_only
+from models.user import UserBM, UserRegBM, UserTokenBM
+from services.auth import is_username_correct, is_password_correct, token_required
+from services.auth import create_user, get_user, update_user, delete_user
 
 from config import Config
 
-from resslogger import RessLogger
+from services.resslogger import RessLogger
 log = RessLogger()
 
 router = InferringRouter()
@@ -30,29 +27,20 @@ class UsersCBV:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content={'message': 'Username and password must be provided for registration'}
             )
-        if not username_pass_regex(user.username):
+        if not is_username_correct(user.username):
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content={'message': Config.AUTH_USERNAME['failmessage']}
+                content={'message': Config.AUTH_USERNAME_REGEX['failmessage']}
             )
-        if not password_pass_regex(user.password):
+        if not is_password_correct(user.password):
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content={'message': Config.AUTH_PASSWORD['failmessage']}
+                content={'message': Config.AUTH_PASSWORD_REGEX['failmessage']}
             )
 
-        db_user = User(username=user.username, userhash=hash_password(user.password))
-
-        try:
-            db_user.save()
-        except mongoengine.errors.NotUniqueError:
-            return JSONResponse(
-                status_code=status.HTTP_409_CONFLICT, content={'message': 'That user already exist'}
-            )
+        db_user = create_user(user)
 
         user = UserBM.parse_raw(db_user.to_json())
-
-        log.info(f'User "{ user.username }" has been registered')
 
         return JSONResponse(
             status_code=status.HTTP_201_CREATED,
@@ -60,34 +48,28 @@ class UsersCBV:
                 'message': 'user registered',
                 'username': user.username,
                 'uuid': user.uuid,
-            },
+            }
         )
 
     """ READ """
     @router.get('/user/{uuid}')
     def read(self, uuid: str):
 
-        try:
-            db_user = User.objects.get(uuid=uuid)
-        except User.DoesNotExist:
+        db_user = get_user(uuid)
+        if not db_user:
             return JSONResponse(
                 status_code=status.HTTP_404_NOT_FOUND,
                 content={'message': 'User does not found'},
             )
 
-        user = UserBM.parse_raw(db_user.to_json())
-        return user
+        return UserBM.parse_raw(db_user.to_json())
 
     """ UPDATE """
     @router.put('/user/{uuid}')
     def update(self, uuid: str, user: UserBM, token: UserTokenBM = Depends(token_required)):
 
-        db_user = User.objects.get(uuid=uuid)
+        db_user = update_user(uuid, user, token)
 
-        owner_or_admin_can_proceed_only(uuid, token)
-
-        db_user.username = user.username
-        db_user.save()
         user = UserBM.parse_raw(db_user.to_json())
         return JSONResponse(
             status_code=status.HTTP_200_OK,
@@ -98,12 +80,8 @@ class UsersCBV:
     @router.delete('/user/{uuid}', status_code=status.HTTP_204_NO_CONTENT)
     def delete(self, uuid: str, token: UserTokenBM = Depends(token_required)):
 
-        db_user = User.objects.get(uuid=uuid)
-        owner_or_admin_can_proceed_only(uuid, token)
-
-        user = UserBM.parse_raw(db_user.to_json())
-        db_user.delete()
+        delete_user(uuid, token)
         return JSONResponse(
             status_code=status.HTTP_204_NO_CONTENT,
-            content={'message': f'User "{user.username}" deleted'},
+            content={'message': f'User {uuid} deleted'},
         )

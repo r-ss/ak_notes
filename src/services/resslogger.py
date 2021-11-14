@@ -17,6 +17,8 @@ def singleton(cls, *args, **kw):
 
 @singleton
 class RessLogger(object):
+    """ For now, it's just wrapper for print function to debug, but later... it can send telegram messages :) """
+
     @property
     def time(self) -> str:
         return datetime.utcnow().strftime(Config.DATETIME_FORMAT_HUMAN)

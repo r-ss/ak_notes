@@ -2,7 +2,7 @@ from tests.testutils import post, get, put, delete
 
 # from config import Config
 
-from utils import make_random_string
+from services.utils import make_random_string
 
 note_uuid_save = None  # will save id upon note creation for tests and remove note by id after all
 note_data_save = None

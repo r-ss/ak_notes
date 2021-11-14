@@ -1,15 +1,17 @@
 import json
-from datetime import datetime
 from fastapi_utils.cbv import cbv
 from fastapi import status, Depends
 from fastapi.responses import JSONResponse
 from fastapi_utils.inferring_router import InferringRouter
 
-from models.note import Note, NoteExtendedBM, NoteEditBM, NoteExtendedBM, NotesExtendedBM
-from models.category import Category, CategoryBM
-from models.user import User, UserTokenBM
+from models.note import NoteExtendedBM, NoteEditBM, NoteExtendedBM, NotesExtendedBM
+from models.category import CategoryBM
+from models.user import UserTokenBM
 
-from user_auth import token_required, owner_or_admin_can_proceed_only
+from services.auth import token_required, owner_or_admin_can_proceed_only
+
+from services.notes_logic import create, get_specific, get_all_by_user, get_all_with_tag, update, change_note_category, delete
+
 
 router = InferringRouter()
 
@@ -19,116 +21,71 @@ class NotesCBV:
 
     """ CREATE """
     @router.post('/notes', status_code=status.HTTP_201_CREATED)
-    def create(self, note: NoteExtendedBM, token: UserTokenBM = Depends(token_required)):
-
-        db_user = User.objects.get(uuid=token.uuid)
-        cat = Category.choose_default()
-
-        db_note = Note(
-            title=note.title, body=note.body, owner=db_user, category=cat, tags=note.tags
-        )
-        db_note.save()
-        note = NoteExtendedBM.parse_raw(db_note.to_custom_json())
-        return note
+    def create_note(self, note: NoteExtendedBM, token: UserTokenBM = Depends(token_required)):
+        db_note = create(note, token)
+        return NoteExtendedBM.parse_raw(db_note.to_custom_json())
 
     """ READ """
     @router.get('/notes/{uuid}')
-    def read(self, uuid: str, token: UserTokenBM = Depends(token_required)):
-        """ read single specific note """
-
-        try:
-            db_note = Note.objects.get(uuid=uuid)
-        except Note.DoesNotExist:
+    def read_note(self, uuid: str, token: UserTokenBM = Depends(token_required)):
+        """ Read single specific note """
+        db_note = get_specific(uuid)
+        if not db_note:
             return JSONResponse(
                 status_code=status.HTTP_404_NOT_FOUND,
                 content={'message': 'Note does not found'},
             )
-
         owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
-
-        note = NoteExtendedBM.parse_raw(db_note.to_custom_json())
-        return note
+        return NoteExtendedBM.parse_raw(db_note.to_custom_json())
 
     @router.get('/notes')
-    def read_all(self, token: UserTokenBM = Depends(token_required)):
-        """ read all notes owned by current user """
+    def read_all_notes(self, token: UserTokenBM = Depends(token_required)):
+        """ Read all notes owned by current user """
 
-        db_user = User.objects.get(uuid=token.uuid)
-        db_notes = Note.objects.filter(owner=db_user)
+        db_notes = get_all_by_user(token)
 
         # TODO - Refactor following parse-unparse
         j = []
         for n in db_notes:
             j.append(json.loads(n.to_custom_json()))
 
-        notes = NotesExtendedBM.parse_obj(j)
-        return notes
+        return NotesExtendedBM.parse_obj(j)
 
     @router.get('/notes/with-tag/{tag}')
     def read_with_tag(self, tag: str, token: UserTokenBM = Depends(token_required)):
-        """ read all notes by current user that contains specific tag """
+        """ Read all notes by current user that contains specific tag """
 
-        db_user = User.objects.get(uuid=token.uuid)
-        db_notes = Note.objects.filter(owner=db_user, tags__in=[tag])
+        db_notes = get_all_with_tag(tag, token)
 
         # TODO - Refactor following parse-unparse
         j = []
         for n in db_notes:
             j.append(json.loads(n.to_custom_json()))
 
-        notes = NotesExtendedBM.parse_obj(j)
-        return notes
+        return NotesExtendedBM.parse_obj(j)
 
     """ UPDATE """
     @router.put('/notes/{note_uuid}', status_code=status.HTTP_200_OK)
     def update(self, note_uuid: str, input_note: NoteEditBM, token: UserTokenBM = Depends(token_required)):
-        """ edit note """
-        db_note = Note.objects.get(uuid=note_uuid)
+        """ Edit note """
 
-        owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
+        db_note = update(note_uuid, input_note, token)
 
-        untouched = True
-
-        if input_note.title:
-            db_note.title = input_note.title
-            untouched = False
-        if input_note.body:
-            db_note.body = input_note.body
-            untouched = False
-        if input_note.tags:
-            db_note.tags = input_note.tags
-            untouched = False
-
-        if not untouched:
-            db_note.modified = datetime.utcnow()
-            db_note.save()
-
-            note = NoteExtendedBM.parse_raw(db_note.to_custom_json())
-            return note
-        else:
+        if not db_note:
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content={'message': 'No data for update'},
             )
+        return NoteExtendedBM.parse_raw(db_note.to_custom_json())
 
     @router.put('/notes/{note_uuid}/change-category', status_code=status.HTTP_200_OK)
     def change_note_category(self, note_uuid: str, new_category: CategoryBM, token: UserTokenBM = Depends(token_required)):
         """ change note category """
-        db_note = Note.objects.get(uuid=note_uuid)
-        owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
-
-        db_category = Category.objects.get(numerical_id=new_category.numerical_id)
-        db_note.category = db_category
-        db_note.save()
-
-        note = NoteExtendedBM.parse_raw(db_note.to_custom_json())
-        return note
+        db_note = change_note_category(note_uuid, new_category, token)
+        return NoteExtendedBM.parse_raw(db_note.to_custom_json())
 
     """ DELETE """
     @router.delete('/notes/{uuid}', status_code=status.HTTP_204_NO_CONTENT)
-    def delete(self, uuid: str, token: UserTokenBM = Depends(token_required)):
-        db_note = Note.objects.get(uuid=uuid)
-        owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
-        note = NoteExtendedBM.parse_raw(db_note.to_custom_json())
-        db_note.delete()
-        return {'deteted note': note}
+    def delete_note(self, uuid: str, token: UserTokenBM = Depends(token_required)):
+        delete(uuid, token)
+        return {'note deleted'}

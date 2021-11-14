@@ -58,7 +58,6 @@ uvicorn main:app --reload --app-dir src
 
 1. Which pattern I got? MVC, MVP? or MVS? (Model-View-Shit)
 2. When files will be saved in AWS instead of local filesystem, can we call application as "stateless"?
-3. Why is "bad" have some logic in views?
 
 ## TODO
 
