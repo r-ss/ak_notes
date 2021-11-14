@@ -10,6 +10,7 @@ import mongoengine as mongoengine
 from models.user import User, UserBM, UserRegBM, UserTokenBM
 from user_auth import hash_password, username_pass_regex, password_pass_regex, token_required, owner_or_admin_can_proceed_only
 
+from config import Config
 
 from resslogger import RessLogger
 log = RessLogger()
@@ -24,8 +25,6 @@ class UsersCBV:
     @router.post('/user/register', status_code=status.HTTP_201_CREATED)
     def create(self, user: UserRegBM):
 
-        print(type(user.username), type(user.password))
-
         if not user.password or not user.username:
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -34,12 +33,12 @@ class UsersCBV:
         if not username_pass_regex(user.username):
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content={'message': 'Username must be at least 3 characters and may contain . - _ chars.'}
+                content={'message': Config.AUTH_USERNAME['failmessage']}
             )
         if not password_pass_regex(user.password):
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content={'message': 'Password must at least 6 characters and may contain . - _ symbols'}
+                content={'message': Config.AUTH_PASSWORD['failmessage']}
             )
 
         db_user = User(username=user.username, userhash=hash_password(user.password))
@@ -48,7 +47,7 @@ class UsersCBV:
             db_user.save()
         except mongoengine.errors.NotUniqueError:
             return JSONResponse(
-                status_code=status.HTTP_409_CONFLICT, content={'That user already exist'}
+                status_code=status.HTTP_409_CONFLICT, content={'message': 'That user already exist'}
             )
 
         user = UserBM.parse_raw(db_user.to_json())

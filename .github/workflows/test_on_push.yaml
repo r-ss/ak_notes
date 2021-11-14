@@ -29,7 +29,9 @@ jobs:
         env:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           DBHOST_DEV: ${{ secrets.DBHOST_DEV }}
-          # CODECLIMATE_TEST_REPORTER_ID: ${{ secrets.CODECLIMATE_TEST_REPORTER_ID }}
+          TESTUSER_ALICE_PASSWORD: ${{ secrets.TESTUSER_ALICE_PASSWORD }}
+          TESTUSER_BOB_PASSWORD: ${{ secrets.TESTUSER_BOB_PASSWORD }}
+          TESTUSER_SUPER_PASSWORD: ${{ secrets.TESTUSER_SUPER_PASSWORD }}
         run: coverage run --source=./src/tests -m pytest
       - name: Print coverage report
         run: ls -la && coverage report -m
