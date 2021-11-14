@@ -4,8 +4,8 @@ from fastapi.responses import JSONResponse
 from fastapi_utils.inferring_router import InferringRouter
 
 from models.user import UserBM, UserRegBM, UserTokenBM
-from services.auth import is_username_correct, is_password_correct, token_required
-from services.auth import create_user, get_user, update_user, delete_user
+from services.users.auth import is_username_correct, is_password_correct, token_required
+from services.users.crud import create, read, update, delete
 
 from config import Config
 
@@ -20,7 +20,7 @@ class UsersCBV:
 
     """ CREATE """
     @router.post('/user/register', status_code=status.HTTP_201_CREATED)
-    def create(self, user: UserRegBM):
+    def create_user(self, user: UserRegBM):
 
         if not user.password or not user.username:
             return JSONResponse(
@@ -38,7 +38,7 @@ class UsersCBV:
                 content={'message': Config.AUTH_PASSWORD_REGEX['failmessage']}
             )
 
-        db_user = create_user(user)
+        db_user = create(user)
 
         user = UserBM.parse_raw(db_user.to_json())
 
@@ -53,9 +53,9 @@ class UsersCBV:
 
     """ READ """
     @router.get('/user/{uuid}')
-    def read(self, uuid: str):
+    def read_user(self, uuid: str):
 
-        db_user = get_user(uuid)
+        db_user = read(uuid)
         if not db_user:
             return JSONResponse(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -66,9 +66,9 @@ class UsersCBV:
 
     """ UPDATE """
     @router.put('/user/{uuid}')
-    def update(self, uuid: str, user: UserBM, token: UserTokenBM = Depends(token_required)):
+    def update_user(self, uuid: str, user: UserBM, token: UserTokenBM = Depends(token_required)):
 
-        db_user = update_user(uuid, user, token)
+        db_user = update(uuid, user, token)
 
         user = UserBM.parse_raw(db_user.to_json())
         return JSONResponse(
@@ -78,9 +78,9 @@ class UsersCBV:
 
     """ DELETE """
     @router.delete('/user/{uuid}', status_code=status.HTTP_204_NO_CONTENT)
-    def delete(self, uuid: str, token: UserTokenBM = Depends(token_required)):
+    def delete_user(self, uuid: str, token: UserTokenBM = Depends(token_required)):
 
-        delete_user(uuid, token)
+        delete(uuid, token)
         return JSONResponse(
             status_code=status.HTTP_204_NO_CONTENT,
             content={'message': f'User {uuid} deleted'},

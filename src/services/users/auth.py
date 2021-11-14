@@ -1,4 +1,3 @@
-from typing import Union
 import datetime
 import bcrypt
 import jwt
@@ -6,9 +5,7 @@ from re import compile
 from fastapi import status, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 
-import mongoengine as mongoengine  # to catch mongoengine.errors.NotUniqueError on duplicate user registration
-
-from models.user import User, UserBM, UserTokenBM, UserRegBM, UserTokenBM
+from models.user import User, UserTokenBM, UserTokenBM
 from config import Config
 
 from services.resslogger import RessLogger
@@ -91,46 +88,3 @@ def login(username: str, password: str) -> bool:
         return token
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Wrong password')
-
-
-""" CRUD methods """
-
-
-def create_user(user: UserRegBM) -> User:
-
-    db_user = User(username=user.username, userhash=hash_password(user.password))
-
-    try:
-        db_user.save()
-    except mongoengine.errors.NotUniqueError:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail='That user already exist',
-        )
-
-    log.info(f'User "{ db_user.username }" has been registered')
-    return db_user
-
-
-def get_user(uuid: str) -> Union[User, None]:
-
-    try:
-        db_user = User.objects.get(uuid=uuid)
-    except User.DoesNotExist:
-        return None
-
-    return db_user
-
-
-def update_user(uuid: str, user: UserBM, token: UserTokenBM) -> User:
-    db_user = User.objects.get(uuid=uuid)
-    owner_or_admin_can_proceed_only(uuid, token)
-    db_user.username = user.username
-    return db_user.save()
-
-
-def delete_user(uuid: str, token: UserTokenBM) -> None:
-
-    db_user = User.objects.get(uuid=uuid)
-    owner_or_admin_can_proceed_only(uuid, token)
-    db_user.delete()

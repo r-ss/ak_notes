@@ -9,7 +9,7 @@ from fastapi_utils.inferring_router import InferringRouter
 from models.file import FileBM, FilesBM, FileEditBM
 from models.user import UserTokenBM
 
-from services.auth import token_required
+from services.users.auth import token_required
 # from config import Config
 
 

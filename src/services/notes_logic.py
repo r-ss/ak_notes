@@ -5,7 +5,7 @@ from models.note import Note, NoteExtendedBM, NoteEditBM, NoteExtendedBM
 from models.category import Category, CategoryBM
 from models.user import User, UserTokenBM
 
-from services.auth import owner_or_admin_can_proceed_only
+from services.users.auth import owner_or_admin_can_proceed_only
 
 
 def create(note: NoteExtendedBM, token: UserTokenBM) -> Note:

@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from models.user import UserTokenBM
 
-from services.auth import is_username_correct, is_password_correct, token_required, login
+from services.users.auth import is_username_correct, is_password_correct, token_required, login
 
 
 from config import Config

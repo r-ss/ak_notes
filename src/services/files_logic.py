@@ -6,7 +6,7 @@ from models.note import Note
 from models.file import File
 from models.user import User, UserTokenBM
 
-from services.auth import owner_or_admin_can_proceed_only
+from services.users.auth import owner_or_admin_can_proceed_only
 from config import Config
 
 

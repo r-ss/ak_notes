@@ -8,7 +8,7 @@ from models.note import NoteExtendedBM, NoteEditBM, NoteExtendedBM, NotesExtende
 from models.category import CategoryBM
 from models.user import UserTokenBM
 
-from services.auth import token_required, owner_or_admin_can_proceed_only
+from services.users.auth import token_required, owner_or_admin_can_proceed_only
 
 from services.notes_logic import create, get_specific, get_all_by_user, get_all_with_tag, update, change_note_category, delete
 
