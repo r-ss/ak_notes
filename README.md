@@ -1,7 +1,7 @@
 # ak_notes
 
-Backend for hypothetical Notes  
-Part of Artur Karapetov's assignment as a practice with FastAPI and Pydantic.  
+Backend for hypothetical Notes app
+Part of Artur Karapetov's assignment as a practice with REST, FastAPI and Pydantic.  
 This project requires Python 3.10  
 Free tier of MongoDB Atlas used here
 
