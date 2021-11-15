@@ -11,4 +11,3 @@ fastapi-utils # 0.2.1 - for @cbr decorator, Class Based Router
 python-multipart # 0.0.5 - Form data in FastAPI requires "python-multipart" to be installed
 flake8 # 4.0.1 - code style guide check
 oitnb # 0.2.2 - linter
-python-decouple # 3.5 - for loading secrets into a config.py

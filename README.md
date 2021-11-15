@@ -5,7 +5,6 @@ Part of Artur Karapetov's assignment as a practice with REST, FastAPI and Pydant
 This project requires Python 3.10  
 Free tier of MongoDB Atlas used here
 
-![example workflow](https://github.com/r-ss/ak_notes/actions/workflows/test_on_push.yaml/badge.svg)  
 [![Maintainability](https://api.codeclimate.com/v1/badges/53f9891d099578172022/maintainability)](https://codeclimate.com/github/r-ss/ak_notes/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/53f9891d099578172022/test_coverage)](https://codeclimate.com/github/r-ss/ak_notes/test_coverage)
 
 
