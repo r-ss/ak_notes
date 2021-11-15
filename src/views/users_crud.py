@@ -5,7 +5,7 @@ from fastapi_utils.inferring_router import InferringRouter
 
 from models.user import UserBM, UserRegBM, UserTokenBM
 from services.users.auth import is_username_correct, is_password_correct, token_required
-from services.users.crud import create, read, update, delete
+from services.users.crud import UsersCRUD
 
 from config import Config
 
@@ -38,7 +38,7 @@ class UsersCBV:
                 content={'message': Config.AUTH_PASSWORD_REGEX['failmessage']}
             )
 
-        db_user = create(user)
+        db_user = UsersCRUD.create(user)
 
         user = UserBM.parse_raw(db_user.to_json())
 
@@ -55,7 +55,7 @@ class UsersCBV:
     @router.get('/user/{uuid}')
     def read_user(self, uuid: str):
 
-        db_user = read(uuid)
+        db_user = UsersCRUD.read(uuid)
         if not db_user:
             return JSONResponse(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -68,7 +68,7 @@ class UsersCBV:
     @router.put('/user/{uuid}')
     def update_user(self, uuid: str, user: UserBM, token: UserTokenBM = Depends(token_required)):
 
-        db_user = update(uuid, user, token)
+        db_user = UsersCRUD.update(uuid, user, token)
 
         user = UserBM.parse_raw(db_user.to_json())
         return JSONResponse(
@@ -80,7 +80,7 @@ class UsersCBV:
     @router.delete('/user/{uuid}', status_code=status.HTTP_204_NO_CONTENT)
     def delete_user(self, uuid: str, token: UserTokenBM = Depends(token_required)):
 
-        delete(uuid, token)
+        UsersCRUD.delete(uuid, token)
         return JSONResponse(
             status_code=status.HTTP_204_NO_CONTENT,
             content={'message': f'User {uuid} deleted'},

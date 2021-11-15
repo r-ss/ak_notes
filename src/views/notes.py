@@ -9,9 +9,7 @@ from models.category import CategoryBM
 from models.user import UserTokenBM
 
 from services.users.auth import token_required, owner_or_admin_can_proceed_only
-
-from services.notes_logic import create, get_specific, get_all_by_user, get_all_with_tag, update, change_note_category, delete
-
+from services.notes import NotesCRUD
 
 router = InferringRouter()
 
@@ -22,14 +20,14 @@ class NotesCBV:
     """ CREATE """
     @router.post('/notes', status_code=status.HTTP_201_CREATED)
     def create_note(self, note: NoteExtendedBM, token: UserTokenBM = Depends(token_required)):
-        db_note = create(note, token)
+        db_note = NotesCRUD.create(note, token)
         return NoteExtendedBM.parse_raw(db_note.to_custom_json())
 
     """ READ """
     @router.get('/notes/{uuid}')
     def read_note(self, uuid: str, token: UserTokenBM = Depends(token_required)):
         """ Read single specific note """
-        db_note = get_specific(uuid)
+        db_note = NotesCRUD.read_specific(uuid)
         if not db_note:
             return JSONResponse(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -42,7 +40,7 @@ class NotesCBV:
     def read_all_notes(self, token: UserTokenBM = Depends(token_required)):
         """ Read all notes owned by current user """
 
-        db_notes = get_all_by_user(token)
+        db_notes = NotesCRUD.read_all_by_user(token)
 
         # TODO - Refactor following parse-unparse
         j = []
@@ -55,7 +53,7 @@ class NotesCBV:
     def read_with_tag(self, tag: str, token: UserTokenBM = Depends(token_required)):
         """ Read all notes by current user that contains specific tag """
 
-        db_notes = get_all_with_tag(tag, token)
+        db_notes = NotesCRUD.read_all_with_tag(tag, token)
 
         # TODO - Refactor following parse-unparse
         j = []
@@ -69,7 +67,7 @@ class NotesCBV:
     def update(self, note_uuid: str, input_note: NoteEditBM, token: UserTokenBM = Depends(token_required)):
         """ Edit note """
 
-        db_note = update(note_uuid, input_note, token)
+        db_note = NotesCRUD.update(note_uuid, input_note, token)
 
         if not db_note:
             return JSONResponse(
@@ -81,11 +79,11 @@ class NotesCBV:
     @router.put('/notes/{note_uuid}/change-category', status_code=status.HTTP_200_OK)
     def change_note_category(self, note_uuid: str, new_category: CategoryBM, token: UserTokenBM = Depends(token_required)):
         """ change note category """
-        db_note = change_note_category(note_uuid, new_category, token)
+        db_note = NotesCRUD.update_note_category(note_uuid, new_category, token)
         return NoteExtendedBM.parse_raw(db_note.to_custom_json())
 
     """ DELETE """
     @router.delete('/notes/{uuid}', status_code=status.HTTP_204_NO_CONTENT)
     def delete_note(self, uuid: str, token: UserTokenBM = Depends(token_required)):
-        delete(uuid, token)
+        NotesCRUD.delete(uuid, token)
         return {'note deleted'}
