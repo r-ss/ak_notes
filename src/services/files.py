@@ -53,7 +53,7 @@ class FilesCRUD:
 
     """ READ SERVICE """
     def read_specific(uuid: str, token: UserTokenBM) -> Union[File, None]:
-        """ Get single specific file """
+        """ Get from db and return single specific file """
 
         try:
             db_file = File.objects.get(uuid=uuid)

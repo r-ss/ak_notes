@@ -7,9 +7,10 @@ token_save = None
 
 def test_auth_login(client):
     global token_save
+
     data = {
-        'username': Config.TESTUSER_BOB['username'],
-        'password': Config.TESTUSER_BOB['password'],
+        'username': 'Bob',
+        'password': Config.TESTUSER_BOB_PASSWORD,
     }
     status_code, result = postForm(client, '/token', data)
     token_save = result['access_token']
@@ -27,7 +28,7 @@ def test_auth_bad_login(client):
 
 def test_auth_bad_password(client):
     global token_save
-    data = {'username': Config.TESTUSER_ALICE['username'], 'password': 'wrong-password'}
+    data = {'username': 'Alice', 'password': 'wrong-password'}
     status_code, result = postForm(client, '/token', data)
     assert result['detail'] == 'Wrong password'
     assert status_code == 400

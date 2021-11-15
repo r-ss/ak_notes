@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 
 class Category(mongoengine.Document):
-    """ Represents Note Category. Like Default / Work / Personal etc """
+    """ Represents Note Category. Default / Work / Personal etc """
 
     numerical_id = mongoengine.SequenceField(unique=True)
     name = mongoengine.StringField(max_length=32)

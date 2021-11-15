@@ -18,9 +18,6 @@ coverage.json
 env/
 venv/
 
-# Secrets
-settings.ini
-
 # Personal
 snippets.txt
 task.txt

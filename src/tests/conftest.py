@@ -25,8 +25,8 @@ def alice_token(client):
     # send login request only on first call
     if not token_alice_save:
         login_data = {
-            'username': Config.TESTUSER_ALICE['username'],
-            'password': Config.TESTUSER_ALICE['password'],
+            'username': 'Alice',
+            'password': Config.TESTUSER_ALICE_PASSWORD,
         }
         status_code, result = postForm(client, '/token', login_data)
         token_alice_save = result['access_token']
@@ -39,8 +39,8 @@ def bob_token(client):
 
     if not token_bob_save:
         login_data = {
-            'username': Config.TESTUSER_BOB['username'],
-            'password': Config.TESTUSER_BOB['password'],
+            'username': 'Bob',
+            'password': Config.TESTUSER_BOB_PASSWORD,
         }
         status_code, result = postForm(client, '/token', login_data)
         token_bob_save = result['access_token']
@@ -53,8 +53,8 @@ def super_token(client):
 
     if not token_super_save:
         login_data = {
-            'username': Config.TESTUSER_SUPER['username'],
-            'password': Config.TESTUSER_SUPER['password'],
+            'username': 'Jesus',
+            'password': Config.TESTUSER_SUPER_PASSWORD,
         }
         status_code, result = postForm(client, '/token', login_data)
         token_super_save = result['access_token']
