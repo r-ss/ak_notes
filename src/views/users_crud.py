@@ -7,19 +7,19 @@ from models.user import UserBM, UserRegBM, UserTokenBM
 from services.users.auth import is_username_correct, is_password_correct, token_required
 from services.users.crud import UsersCRUD
 
-from config import Config
+from config import config
 
 from services.resslogger import RessLogger
 log = RessLogger()
 
-router = InferringRouter()
+router = InferringRouter(tags=['Users'])
 
 
 @cbv(router)
 class UsersCBV:
 
     """ CREATE """
-    @router.post('/user/register', status_code=status.HTTP_201_CREATED)
+    @router.post('/users', status_code=status.HTTP_201_CREATED)
     def create_user(self, user: UserRegBM):
 
         if not user.password or not user.username:
@@ -30,12 +30,12 @@ class UsersCBV:
         if not is_username_correct(user.username):
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content={'message': Config.AUTH_USERNAME_REGEX['failmessage']}
+                content={'message': config.AUTH_USERNAME_REGEX['failmessage']}
             )
         if not is_password_correct(user.password):
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content={'message': Config.AUTH_PASSWORD_REGEX['failmessage']}
+                content={'message': config.AUTH_PASSWORD_REGEX['failmessage']}
             )
 
         db_user = UsersCRUD.create(user)
@@ -52,7 +52,7 @@ class UsersCBV:
         )
 
     """ READ """
-    @router.get('/user/{uuid}')
+    @router.get('/users/{uuid}')
     def read_user(self, uuid: str):
 
         db_user = UsersCRUD.read(uuid)
@@ -65,7 +65,7 @@ class UsersCBV:
         return UserBM.parse_raw(db_user.to_json())
 
     """ UPDATE """
-    @router.put('/user/{uuid}')
+    @router.put('/users/{uuid}')
     def update_user(self, uuid: str, user: UserBM, token: UserTokenBM = Depends(token_required)):
 
         db_user = UsersCRUD.update(uuid, user, token)
@@ -77,7 +77,7 @@ class UsersCBV:
         )
 
     """ DELETE """
-    @router.delete('/user/{uuid}', status_code=status.HTTP_204_NO_CONTENT)
+    @router.delete('/users/{uuid}', status_code=status.HTTP_204_NO_CONTENT)
     def delete_user(self, uuid: str, token: UserTokenBM = Depends(token_required)):
 
         UsersCRUD.delete(uuid, token)

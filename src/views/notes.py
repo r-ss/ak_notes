@@ -11,7 +11,7 @@ from models.user import UserTokenBM
 from services.users.auth import token_required, owner_or_admin_can_proceed_only
 from services.notes import NotesCRUD
 
-router = InferringRouter()
+router = InferringRouter(tags=['Notes'])
 
 
 @cbv(router)

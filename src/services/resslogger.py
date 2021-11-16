@@ -1,7 +1,7 @@
 # Singleton - https://stackoverflow.com/questions/42237752/single-instance-of-class-in-python
 from datetime import datetime
 
-from config import Config
+from config import config
 
 
 def singleton(cls, *args, **kw):
@@ -21,8 +21,8 @@ class RessLogger(object):
 
     @property
     def time(self) -> str:
-        return datetime.utcnow().strftime(Config.DATETIME_FORMAT_HUMAN)
+        return datetime.utcnow().strftime(config.DATETIME_FORMAT_HUMAN)
 
     def info(self, msg) -> None:
-        if not Config.TESTING_MODE:
+        if not config.TESTING_MODE:
             print('resslogger, %s - info - %s' % (self.time, msg))

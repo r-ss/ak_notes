@@ -1,6 +1,6 @@
 from tests.testutils import get, postForm
 
-from config import Config
+from config import config
 
 token_save = None
 
@@ -10,7 +10,7 @@ def test_auth_login(client):
 
     data = {
         'username': 'Bob',
-        'password': Config.TESTUSER_BOB_PASSWORD,
+        'password': config.TESTUSER_BOB_PASSWORD,
     }
     status_code, result = postForm(client, '/token', data)
     token_save = result['access_token']
@@ -32,11 +32,6 @@ def test_auth_bad_password(client):
     status_code, result = postForm(client, '/token', data)
     assert result['detail'] == 'Wrong password'
     assert status_code == 400
-
-
-def test_auth_check_token(client, alice_token):
-    status_code, result = get(client, '/check_token', auth=alice_token)
-    assert status_code == 200
 
 
 def test_auth_secret_page_via_auth_header(client):

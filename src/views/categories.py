@@ -9,7 +9,7 @@ from models.category import CategoryBM, CategoriesBM
 from services.category import CategoryCRUD
 from services.users.auth import token_required, owner_or_admin_can_proceed_only
 
-router = InferringRouter()
+router = InferringRouter(tags=['Categories'])
 
 
 @cbv(router)

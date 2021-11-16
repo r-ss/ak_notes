@@ -68,4 +68,4 @@ class AppConfig(BaseSettings):
         env_file: str = '.env'
 
 
-Config = AppConfig()
+config = AppConfig()

@@ -7,7 +7,7 @@ from models.file import File
 from models.user import User, UserTokenBM
 
 from services.users.auth import owner_or_admin_can_proceed_only
-from config import Config
+from config import config
 
 from services.filesystem import FileSystemUtils
 
@@ -26,7 +26,7 @@ class FilesCRUD:
         """
 
         db_user = User.objects.get(uuid=token.uuid)
-        fs.check_dir(Config.STORAGE['ROOT'])  # create storage dir on filesystem if not exist
+        fs.check_dir(config.STORAGE['ROOT'])  # create storage dir on filesystem if not exist
 
         try:
             db_note = Note.objects.get(uuid=note_uuid)
@@ -40,7 +40,7 @@ class FilesCRUD:
             db_file = File(linked_to=db_note, filename=upload.filename, owner=db_user)
             db_file.save()
 
-            file_location = '%s%s' % (Config.STORAGE['ROOT'], db_file.filename_uuid)
+            file_location = '%s%s' % (config.STORAGE['ROOT'], db_file.filename_uuid)
             f = open(file_location, 'wb')
             f.write(upload.file.read())
             f.close()

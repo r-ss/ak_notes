@@ -8,9 +8,9 @@ from models.user import UserTokenBM
 from services.users.auth import is_username_correct, is_password_correct, token_required, login
 
 
-from config import Config
+from config import config
 
-router = InferringRouter()
+router = InferringRouter(tags=['Authentication'])
 
 
 @cbv(router)
@@ -27,21 +27,22 @@ class AuthCBV:
             bad_req('Username and password must be provided for login')
 
         if not is_username_correct(form_data.username):
-            bad_req(Config.AUTH_USERNAME_REGEX['failmessage'])
+            bad_req(config.AUTH_USERNAME_REGEX['failmessage'])
 
         if not is_password_correct(form_data.password):
-            bad_req(Config.AUTH_PASSWORD_REGEX['failmessage'])
+            bad_req(config.AUTH_PASSWORD_REGEX['failmessage'])
 
         token = login(form_data.username, form_data.password)
 
         return {'access_token': token, 'token_type': 'bearer'}
 
-    """ CHECK TOKEN """
-    @router.get('/check_token', status_code=status.HTTP_200_OK)
-    def check_token(self, token: UserTokenBM = Depends(token_required)):
-        return {'token': token}
 
-    """ SECRET PAGE, USED TO ENSURE TOKEN MECHANIC WORKING """
-    @router.get('/secretpage', status_code=status.HTTP_200_OK)
+    """ SECRET PAGE, USED IN TESTS TO ENSURE TOKEN MECHANIC WORKING """
+    @router.get('/secretpage', status_code=status.HTTP_200_OK, summary='Works only within tests')
     def secretpage(self, token: UserTokenBM = Depends(token_required)):
+
+        if not config.TESTING_MODE:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='You shall not pass!')
+
+
         return {'message': 'this is secret message'}

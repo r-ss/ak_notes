@@ -6,7 +6,7 @@ from fastapi import status, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 
 from models.user import User, UserTokenBM, UserTokenBM
-from config import Config
+from config import config
 
 from services.resslogger import RessLogger
 log = RessLogger()
@@ -16,13 +16,13 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
 def is_username_correct(username) -> bool:
     """ Username validation """
-    regex = compile(Config.AUTH_USERNAME_REGEX['regex'])
+    regex = compile(config.AUTH_USERNAME_REGEX['regex'])
     return regex.match(username) is not None
 
 
 def is_password_correct(password) -> bool:
     """ Password validation """
-    regex = compile(Config.AUTH_PASSWORD_REGEX['regex'])
+    regex = compile(config.AUTH_PASSWORD_REGEX['regex'])
     return regex.match(password) is not None
 
 
@@ -52,7 +52,7 @@ async def token_required(token: str = Depends(oauth2_scheme)) -> UserTokenBM:
         Example in FastAPI Docs:
         https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/
     """
-    dict = jwt.decode(token, Config.SECRET_KEY, algorithms=[Config.AUTH_HASHING_ALGORITHM])
+    dict = jwt.decode(token, config.SECRET_KEY, algorithms=[config.AUTH_HASHING_ALGORITHM])
     token = UserTokenBM.parse_obj(dict)
     return token
 
@@ -71,14 +71,14 @@ def login(username: str, password: str) -> bool:
     # If password correct login and return token to client
     if bcrypt.checkpw(password.encode('utf-8'), db_user.userhash.encode('utf-8')):
 
-        timeLimit = datetime.datetime.utcnow() + Config.AUTH_TOKEN_EXPIRATION_TIME  # set token time limit
+        timeLimit = datetime.datetime.utcnow() + config.AUTH_TOKEN_EXPIRATION_TIME  # set token time limit
         payload = {
             'username': db_user.username,
             'uuid': str(db_user.uuid),
             'is_superadmin': db_user.is_superadmin,
             'expires': str(timeLimit),
         }
-        token = jwt.encode(payload, Config.SECRET_KEY, algorithm=Config.AUTH_HASHING_ALGORITHM)  # encrypt payload into token
+        token = jwt.encode(payload, config.SECRET_KEY, algorithm=config.AUTH_HASHING_ALGORITHM)  # encrypt payload into token
 
         db_user.last_login = datetime.datetime.utcnow()
         db_user.save()

@@ -11,7 +11,7 @@ from pydantic import BaseModel, constr
 from models.user import UserBM
 from models.category import CategoryBM
 
-from config import Config
+from config import config
 
 import json
 
@@ -49,8 +49,8 @@ class Note(mongoengine.Document):
         data = json.loads(self.to_json())
         data['owner'] = json.loads(self.owner.to_json())
         data['category'] = json.loads(self.category.to_json())
-        data['created'] = self.created.strftime(Config.DATETIME_FORMAT_TECHNICAL)
-        data['modified'] = self.modified.strftime(Config.DATETIME_FORMAT_TECHNICAL)
+        data['created'] = self.created.strftime(config.DATETIME_FORMAT_TECHNICAL)
+        data['modified'] = self.modified.strftime(config.DATETIME_FORMAT_TECHNICAL)
         return json.dumps(data)
 
 

@@ -7,9 +7,9 @@ from fastapi_utils.cbv import cbv
 from fastapi.responses import JSONResponse
 from fastapi_utils.inferring_router import InferringRouter
 
-from config import Config
+from config import config
 
-router = InferringRouter()
+router = InferringRouter(tags=['General'])
 
 
 @cbv(router)
@@ -36,8 +36,8 @@ class InfoCBV:
                 'platform': platform.system(),
                 'platform_release': platform.release(),
                 'python version': platform.python_version(),
-                'testing': Config.TESTING_MODE,
-                'production': Config.PRODUCTION,
+                'testing': config.TESTING_MODE,
+                'production': config.PRODUCTION,
                 'load averages': f'{load1:.2f} {load5:.2f} {load15:.2f}'
             }
         )

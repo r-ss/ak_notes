@@ -1,6 +1,6 @@
 from tests.testutils import post, get, put, delete
 
-# from config import Config
+# from config import config
 
 from services.utils import make_random_string
 

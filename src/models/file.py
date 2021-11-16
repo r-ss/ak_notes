@@ -9,7 +9,7 @@ from models.note import NoteBM
 import mongoengine as mongoengine
 from pydantic import BaseModel
 
-from config import Config
+from config import config
 
 from services.filesystem import FileSystemUtils
 
@@ -30,7 +30,7 @@ class File(mongoengine.Document):
 
     @property
     def path(self) -> str:
-        return '%s%s' % (Config.STORAGE['ROOT'], self.filename_uuid)
+        return '%s%s' % (config.STORAGE['ROOT'], self.filename_uuid)
 
     @property
     def is_file_exist(self) -> bool:
@@ -40,7 +40,7 @@ class File(mongoengine.Document):
         fs.delete_file(self.path)
 
     def write_hash(self) -> None:
-        self.hash = fs.file_hash(self.path, Config.HASH_DIGEST_SIZE)
+        self.hash = fs.file_hash(self.path, config.HASH_DIGEST_SIZE)
         self.save()
 
     @property
@@ -53,7 +53,7 @@ class File(mongoengine.Document):
 
     @property
     def is_file_on_disk_equal_to_saved_hash(self) -> bool:
-        if fs.file_hash(self.path, Config.HASH_DIGEST_SIZE) == self.hash:
+        if fs.file_hash(self.path, config.HASH_DIGEST_SIZE) == self.hash:
             return True
         return False
 

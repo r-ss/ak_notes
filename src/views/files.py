@@ -10,13 +10,13 @@ from models.file import FileBM, FilesBM, FileEditBM
 from models.user import UserTokenBM
 
 from services.users.auth import token_required
-# from config import Config
+# from config import config
 
 from services.filesystem import FileSystemUtils
 from services.files import FilesCRUD
 
 fs = FileSystemUtils()
-router = InferringRouter()
+router = InferringRouter(tags=['Files'])
 
 
 @cbv(router)

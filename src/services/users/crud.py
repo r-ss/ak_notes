@@ -5,7 +5,7 @@ import mongoengine as mongoengine  # to catch mongoengine.errors.NotUniqueError 
 
 from models.user import User, UserBM, UserTokenBM, UserRegBM, UserTokenBM
 
-# from config import Config
+# from config import config
 
 from services.users.auth import hash_password, owner_or_admin_can_proceed_only
 

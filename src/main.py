@@ -1,9 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
 from fastapi.testclient import TestClient
 
 import mongoengine as mongoengine
 
-from config import Config
+from config import config
 
 from views.info import router as info_router
 from views.categories import router as categories_router
@@ -22,17 +22,15 @@ routers = [
 ]
 
 # Connecting to DB
-mg = mongoengine.connect(host=Config.DBHOST)
+mg = mongoengine.connect(host=config.DBHOST)
 
 app = FastAPI()
-
 testclient = TestClient(app)
 
 
-# handle root url just in case
-@app.get('/')
+@app.get('/', tags=['General'])
 def read_root():
-    return {'message': 'there is no root url'}
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="There is no root url")
 
 
 # including routes from our views

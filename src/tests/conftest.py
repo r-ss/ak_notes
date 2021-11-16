@@ -1,6 +1,6 @@
 import pytest
 
-from config import Config
+from config import config
 
 from main import testclient
 
@@ -14,7 +14,7 @@ token_super_save = None
 
 @pytest.fixture
 def client():
-    Config.TESTING_MODE = True
+    config.TESTING_MODE = True
     return testclient
 
 
@@ -26,7 +26,7 @@ def alice_token(client):
     if not token_alice_save:
         login_data = {
             'username': 'Alice',
-            'password': Config.TESTUSER_ALICE_PASSWORD,
+            'password': config.TESTUSER_ALICE_PASSWORD,
         }
         status_code, result = postForm(client, '/token', login_data)
         token_alice_save = result['access_token']
@@ -40,7 +40,7 @@ def bob_token(client):
     if not token_bob_save:
         login_data = {
             'username': 'Bob',
-            'password': Config.TESTUSER_BOB_PASSWORD,
+            'password': config.TESTUSER_BOB_PASSWORD,
         }
         status_code, result = postForm(client, '/token', login_data)
         token_bob_save = result['access_token']
@@ -54,7 +54,7 @@ def super_token(client):
     if not token_super_save:
         login_data = {
             'username': 'Jesus',
-            'password': Config.TESTUSER_SUPER_PASSWORD,
+            'password': config.TESTUSER_SUPER_PASSWORD,
         }
         status_code, result = postForm(client, '/token', login_data)
         token_super_save = result['access_token']

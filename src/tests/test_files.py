@@ -1,7 +1,7 @@
 import os
 from tests.testutils import get, put, delete, postFiles
 
-from config import Config
+from config import config
 
 
 file_numerical_id_save = None  # will save id upon file creation for tests and remove file by id after all
@@ -19,9 +19,9 @@ def test_files_count(client, alice_token):
 
 def test_files_create(client, alice_token):
     global uploaded_files
-    path1 = os.path.join(Config.TESTING_ASSETS_PATH, 'lambo.png')
-    path2 = os.path.join(Config.TESTING_ASSETS_PATH, 'book.txt')
-    status_code, result = postFiles(client, f'/notes/{Config.TESTNOTE_BY_ALICE_UUID}/create-file', [path1, path2], auth=alice_token)
+    path1 = os.path.join(config.TESTING_ASSETS_PATH, 'lambo.png')
+    path2 = os.path.join(config.TESTING_ASSETS_PATH, 'book.txt')
+    status_code, result = postFiles(client, f'/notes/{config.TESTNOTE_BY_ALICE_UUID}/create-file', [path1, path2], auth=alice_token)
     uploaded_files = result
     assert status_code == 201  # HTTP_201_CREATED
 
@@ -35,7 +35,7 @@ def test_files_list_for_user(client, alice_token):
 
 def test_files_list_for_note(client, alice_token):
     status_code, result = get(
-        client, f'/files/for-note/{Config.TESTNOTE_BY_ALICE_UUID}', auth=alice_token
+        client, f'/files/for-note/{config.TESTNOTE_BY_ALICE_UUID}', auth=alice_token
     )
     assert status_code == 200
     assert len(result) == files_count + len(uploaded_files)
