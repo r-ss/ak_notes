@@ -19,6 +19,9 @@ class CategoryBM(BaseModel):
     numerical_id: Optional[int]
     name: Optional[str]
 
+    class Config:
+        orm_mode = True
+
 
 class CategoriesBM(BaseModel):
     __root__: List[CategoryBM]  # __root__

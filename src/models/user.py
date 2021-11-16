@@ -1,7 +1,7 @@
 from datetime import datetime
 import mongoengine as mongoengine
 
-from pydantic import BaseModel
+from pydantic import BaseModel, UUID4
 from typing import Optional
 
 from fastapi import Form
@@ -22,9 +22,12 @@ class User(mongoengine.Document):
 
 
 class UserBM(BaseModel):
-    uuid: Optional[str]
+    uuid: Optional[UUID4]
     username: str
     is_superadmin: Optional[bool] = False
+
+    class Config:
+        orm_mode = True
 
 
 class UserRegBM(UserBM):  # used upon user registeration

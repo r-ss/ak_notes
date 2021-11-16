@@ -1,6 +1,6 @@
 from tests.testutils import post, get, put, delete
 
-# from config import config
+from config import config
 
 from services.utils import make_random_string
 
@@ -8,6 +8,11 @@ note_uuid_save = None  # will save id upon note creation for tests and remove no
 note_data_save = None
 notes_count = None
 
+
+def test_note_read_default_note(client, alice_token):
+    status_code, result = get(client, f'/notes/{config.TESTNOTE_BY_ALICE_UUID}', auth=alice_token)
+    print(result)
+    assert status_code == 200
 
 def test_notes_count(client, alice_token):
     global notes_count  # TODO - is it possible to save variable for another test cases without "global" keyword?

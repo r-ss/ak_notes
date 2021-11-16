@@ -1,12 +1,15 @@
 from typing import Union
 from datetime import datetime
 
-from models.note import Note, NoteExtendedBM, NoteEditBM, NoteExtendedBM
+from fastapi import status, HTTPException
+
+from models.note import Note, NoteExtendedBM, NoteEditBM, NotesBM, NotesExtendedBM
 from models.category import Category, CategoryBM
 from models.user import User, UserTokenBM
 
 from services.users.auth import owner_or_admin_can_proceed_only
 
+import json
 
 class NotesCRUD:
 
@@ -24,21 +27,40 @@ class NotesCRUD:
         return db_note.save()
 
     """ READ SERVICE """
-    def read_specific(uuid: str) -> Union[Note, None]:
+    def read_specific(uuid: str, token: UserTokenBM) -> Union[Note, None]:
         """ Get single specific note """
 
         try:
             db_note = Note.objects.get(uuid=uuid)
         except Note.DoesNotExist:
-            return None
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Note does not found')
 
-        return db_note
+        print('RE >>>>>>>>>>>>>>>')
+        print(type(db_note.uuid))
+        print(str(db_note.uuid))
+
+        owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
+
+        return NoteExtendedBM.from_orm(db_note)
+
+        # return db_note
 
     def read_all_by_user(token: UserTokenBM) -> Note:
         """ Get all notes owned by current user """
 
         db_user = User.objects.get(uuid=token.uuid)
-        return Note.objects.filter(owner=db_user)
+        db_notes = Note.objects.filter(owner=db_user)
+
+        # # TODO - Refactor following parse-unparse
+        # j = []
+        # for n in db_notes:
+        #     j.append(json.loads(n.to_custom_json()))
+
+        # print('>>>>>>')
+        # print(db_notes.values_list())
+        # print(type(list(db_notes)))
+
+        return NotesBM.from_orm(list(db_notes))
 
     def read_all_with_tag(tag: str, token: UserTokenBM) -> Note:
         """ Get all notes by current user that contains specific tag """
@@ -68,8 +90,8 @@ class NotesCRUD:
         if not untouched:
             db_note.modified = datetime.utcnow()
             return db_note.save()
-        else:
-            None
+        
+        return None
 
     def update_note_category(note_uuid: str, new_category: CategoryBM, token: UserTokenBM) -> Note:
         """ Change note category """
@@ -85,6 +107,10 @@ class NotesCRUD:
     def delete(uuid: str, token: UserTokenBM) -> None:
         db_note = Note.objects.get(uuid=uuid)
 
+        
+
         owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
+
+        print('delete note', db_note)
 
         db_note.delete()

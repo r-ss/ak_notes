@@ -6,7 +6,7 @@ import mongoengine as mongoengine
 
 from uuid import uuid4
 
-from pydantic import BaseModel, constr
+from pydantic import BaseModel, constr, UUID4
 
 from models.user import UserBM
 from models.category import CategoryBM
@@ -33,7 +33,7 @@ class Note(mongoengine.Document):
     uuid = mongoengine.fields.UUIDField(binary=False, default=uuid4, required=True)
     created = mongoengine.DateTimeField(default=datetime.datetime.utcnow())
     modified = mongoengine.DateTimeField(default=datetime.datetime.utcnow())
-    title = mongoengine.StringField(max_length=50)
+    title = mongoengine.StringField(max_length=200)
     body = mongoengine.StringField(required=True)
     owner = mongoengine.ReferenceField('User', required=True)
     category = mongoengine.ReferenceField('Category', required=True)
@@ -57,11 +57,14 @@ class Note(mongoengine.Document):
 # Base model frame
 class NoteBM(BaseModel):
     numerical_id: Optional[int]
-    uuid: Optional[str]
+    uuid: Optional[UUID4]
     created: Optional[datetime.datetime]
     modified: Optional[datetime.datetime]
     title: constr(max_length=50)
     body: str
+
+    class Config:
+        orm_mode = True
 
 
 # Used on json output
@@ -70,6 +73,9 @@ class NoteExtendedBM(NoteBM):
     # files: Optional[list]
     category: Optional[CategoryBM]
     tags: Optional[List[str]]
+
+    class Config:
+        orm_mode = True
 
 
 # Usen upon note update - added Optional fields
@@ -82,6 +88,12 @@ class NoteEditBM(NoteBM):
 class NotesBM(BaseModel):
     __root__: List[NoteBM]  # __root__
 
+    class Config:
+        orm_mode = True
+
 
 class NotesExtendedBM(BaseModel):
     __root__: List[NoteExtendedBM]  # __root__
+
+    class Config:
+        orm_mode = True
