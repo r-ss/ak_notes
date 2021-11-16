@@ -28,7 +28,7 @@ jobs:
       - name: Run tests
         env:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          DBHOST_DEV: ${{ secrets.DBHOST_DEV }}
+          DBHOST: ${{ secrets.DBHOST }}
           TESTUSER_ALICE_PASSWORD: ${{ secrets.TESTUSER_ALICE_PASSWORD }}
           TESTUSER_BOB_PASSWORD: ${{ secrets.TESTUSER_BOB_PASSWORD }}
           TESTUSER_SUPER_PASSWORD: ${{ secrets.TESTUSER_SUPER_PASSWORD }}
