@@ -3,7 +3,7 @@ from typing import List, Union
 from fastapi import status, HTTPException, UploadFile
 
 from models.note import Note
-from models.file import File
+from models.file import File, FileBM, FileEditBM, FilesBM
 from models.user import User, UserTokenBM
 
 from services.users.auth import owner_or_admin_can_proceed_only
@@ -14,10 +14,10 @@ from services.filesystem import FileSystemUtils
 fs = FileSystemUtils()
 
 
-class FilesCRUD:
+class FilesService:
 
     """ CREATE SERVICE """
-    def create_for_note(note_uuid: str, uploads: List[UploadFile], token: UserTokenBM) -> Union[list, None]:
+    def create(note_uuid: str, uploads: List[UploadFile], token: UserTokenBM) -> Union[FilesBM, None]:
         """ Handle multiple uploaded files.
             Saving every uploaded file on local disk.
             Create File item in database, savign hash checksum for file.
@@ -37,7 +37,7 @@ class FilesCRUD:
 
         processed_files_collector = []
         for upload in uploads:
-            db_file = File(linked_to=db_note, filename=upload.filename, owner=db_user)
+            db_file = File(filename=upload.filename)
             db_file.save()
 
             file_location = '%s%s' % (config.STORAGE['ROOT'], db_file.filename_uuid)
@@ -45,44 +45,72 @@ class FilesCRUD:
             f.write(upload.file.read())
             f.close()
 
-            db_file.write_hash()
-            processed_files_collector.append(json.loads(db_file.to_custom_json()))
+            db_file.write_metadata()
+            processed_files_collector.append(FileBM.from_orm(db_file))
+        
+            # update info about files in note
+            db_note.files.append(db_file.uuid)
+            db_note.save()
+
             del db_file
 
-        return processed_files_collector
+        return FilesBM.parse_obj(processed_files_collector)
 
     """ READ SERVICE """
-    def read_specific(uuid: str, token: UserTokenBM) -> Union[File, None]:
+    def read_specific(uuid: str, token: UserTokenBM) -> Union[FileBM, None]:
         """ Get from db and return single specific file """
 
         try:
             db_file = File.objects.get(uuid=uuid)
         except File.DoesNotExist:
-            return None
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='File does not found')
 
-        owner_or_admin_can_proceed_only(db_file.owner.uuid, token)
-        return db_file
+        # owner_or_admin_can_proceed_only(db_file.owner.uuid, token)
+        return FileBM.from_orm(db_file)
 
-    def read_all_for_note(note_uuid: str, token: UserTokenBM) -> File:
+    def read_all_for_note(note_uuid: str, token: UserTokenBM) -> FilesBM:
         """ Get all files attached to specific note """
 
         db_note = Note.objects.get(uuid=note_uuid)
-        owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
-        return File.objects.filter(linked_to=db_note)
 
-    def read_all_for_user(token: UserTokenBM) -> File:
+        owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
+
+        files_collector = []
+        for item in db_note.files:
+            db_file = File.objects.get(uuid=item)
+            files_collector.append(FileBM.from_orm(db_file))
+
+        
+
+        return FilesBM.from_orm(files_collector)
+
+    def read_all_for_user(token: UserTokenBM) -> FilesBM:
         """ Get all files owned by current user """
 
+        # TODO - check permissions
+
         db_user = User.objects.get(uuid=token.uuid)
-        return File.objects.filter(owner=db_user)
+        db_notes = Note.objects.filter(owner=db_user)
+
+        files_collector = []
+        for db_note in db_notes:
+            for item in db_note.files:
+                try:
+                    db_file = File.objects.get(uuid=item)
+                except File.DoesNotExist:
+                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='File does not found')
+                files_collector.append(FileBM.from_orm(db_file))
+
+        return FilesBM.parse_obj(files_collector)
 
     """ UPDATE SERVICE """
-    def update(uuid: str, new_filename: str, token: UserTokenBM) -> File:
+    def update(file: FileEditBM, token: UserTokenBM) -> FileBM:
         """ Update filename """
 
-        db_file = File.objects.get(uuid=uuid)
+        db_file = File.objects.get(uuid=file.uuid)
 
-        owner_or_admin_can_proceed_only(db_file.owner.uuid, token)
+        # TODO - check permissions
+        # owner_or_admin_can_proceed_only(db_file.owner.uuid, token)
 
         if db_file.file_extension != new_filename.split('.')[-1]:
             raise HTTPException(
@@ -91,16 +119,25 @@ class FilesCRUD:
             )
 
         db_file.filename = new_filename
-        return db_file.save()
+        return FileBM.from_orm(db_file.save())
 
     """ DELETE SERVICE """
     def delete(uuid: str, token: UserTokenBM) -> None:
         """ Delete specific file from filesystem and from database """
 
         db_file = File.objects.get(uuid=uuid)
-        owner_or_admin_can_proceed_only(db_file.owner.uuid, token)
+
+        # TODO - check permissions
+        # owner_or_admin_can_proceed_only(db_file.owner.uuid, token)
+
+        # update info about file in note
+        db_note = Note.objects.filter(files__in=[db_file.uuid])[0]
+        db_note.files.remove(db_file.uuid)
+        db_note.save()
 
         if db_file.is_file_exist and db_file.is_file_on_disk_equal_to_saved_hash:
             db_file.remove_from_filesystem()
             if not db_file.is_file_exist:
                 db_file.delete()
+
+

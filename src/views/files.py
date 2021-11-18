@@ -13,7 +13,7 @@ from services.users.auth import token_required
 # from config import config
 
 from services.filesystem import FileSystemUtils
-from services.files import FilesCRUD
+from services.files import FilesService
 
 fs = FileSystemUtils()
 router = InferringRouter(tags=['Files'])
@@ -23,65 +23,34 @@ router = InferringRouter(tags=['Files'])
 class FilesCBV:
 
     """ CREATE """
-    @router.post('/notes/{note_uuid}/create-file', status_code=status.HTTP_201_CREATED)
+    @router.post('/notes/{note_uuid}/files', status_code=status.HTTP_201_CREATED)
     def create(self, note_uuid: str, uploads: List[UploadFile] = FastAPIFile(...), token: UserTokenBM = Depends(token_required)):
-        uploaded_files = FilesCRUD.create_for_note(note_uuid, uploads, token)
-        return FilesBM.parse_obj(uploaded_files)
+        return FilesService.create(note_uuid, uploads, token)
 
     """ READ """
-    @router.get('/files/read/{uuid}')
+    @router.get('/files/{uuid}')
     def read(self, uuid: str, token: UserTokenBM = Depends(token_required)):
         """ Read single specific file """
+        return FilesService.read_specific(uuid, token)
 
-        db_file = FilesCRUD.read_specific(uuid, token)
-        if not db_file:
-            return JSONResponse(
-                status_code=status.HTTP_404_NOT_FOUND,
-                content={'message': 'File does not found'},
-            )
-        return FileBM.parse_raw(db_file.to_custom_json())
-
-    @router.get('/files/for-note/{note_uuid}')
+    @router.get('/notes/{note_uuid}/files')
     def read_all_for_note(self, note_uuid: str, token: UserTokenBM = Depends(token_required)):
         """ Read all files attached to specific note """
+        return FilesService.read_all_for_note(note_uuid, token)
 
-        db_files = FilesCRUD.read_all_for_note(note_uuid, token)
-
-        # TODO - Refactor following parse-unparse
-        j = []
-        for n in db_files:
-            j.append(json.loads(n.to_custom_json()))
-
-        return FilesBM.parse_obj(j)
-
-    @router.get('/files/for-user')
+    @router.get('/users/{user_uuid}/files')
     def read_all_for_user(self, token: UserTokenBM = Depends(token_required)):
         """ Read all files owned by current user """
-
-        db_files = FilesCRUD.read_all_for_user(token)
-
-        # TODO - Refactor following parse-unparse
-        j = []
-        for n in db_files:
-            j.append(json.loads(n.to_custom_json()))
-
-        return FilesBM.parse_obj(j)
-
-    # TODO - implement downloads
-    # def download():
-    # return FileResponse(path)
+        return FilesService.read_all_for_user(token)
 
     """ UPDATE """
     @router.put('/files/{uuid}', status_code=status.HTTP_200_OK, response_model=FileBM)
-    def update_file(self, uuid: str, file: FileEditBM, token: UserTokenBM = Depends(token_required)):
+    def update_file(self, file: FileEditBM, token: UserTokenBM = Depends(token_required)):
         """ Method to edit file, now only filename can be changed """
-        db_file = FilesCRUD.update(uuid, file.filename, token)
-        return FileBM.parse_raw(db_file.to_custom_json())
+        return FilesService.update(file, token)
 
     """ DELETE """
     @router.delete('/files/{uuid}', status_code=status.HTTP_204_NO_CONTENT)
     def delete_file(self, uuid: str, token: UserTokenBM = Depends(token_required)):
-
-        FilesCRUD.delete(uuid, token)
-
+        FilesService.delete(uuid, token)
         return {'file deleted'}

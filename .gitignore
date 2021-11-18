@@ -23,6 +23,7 @@ snippets.txt
 task.txt
 
 .vscode
+.idea
 .DS_Store
 
 # Project's dir for uploads

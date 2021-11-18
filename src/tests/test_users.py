@@ -63,15 +63,15 @@ def test_user_update_by_owner(client):
     assert status_code == 200
 
 
-def test_user_update_by_alice(client, alice_token):
+def test_user_update_by_alice(client, alice):
     data = {'username': user_username_save + '_upd'}
-    status_code, result = put(client, f'/users/{user_uuid_save}', data, auth=alice_token)
+    status_code, result = put(client, f'/users/{user_uuid_save}', data, auth=alice.token)
     assert result['detail'] == 'Seems like you are not authorized to this'
     assert status_code == 401
 
 
-def test_user_delete_by_alice(client, alice_token):
-    status_code, result = delete(client, f'/users/{user_uuid_save}', auth=alice_token)
+def test_user_delete_by_alice(client, alice):
+    status_code, result = delete(client, f'/users/{user_uuid_save}', auth=alice.token)
     assert result['detail'] == 'Seems like you are not authorized to this'
     assert status_code == 401
 

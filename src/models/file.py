@@ -1,32 +1,40 @@
-import json
 from datetime import datetime
 from typing import Optional, List
 from uuid import uuid4
 
-from models.user import UserBM
-from models.note import NoteBM
-
 import mongoengine as mongoengine
-from pydantic import BaseModel
+from pydantic import BaseModel, UUID4
 
 from config import config
-
+from models.user import User
+from models.note import Note
 from services.filesystem import FileSystemUtils
+
+import filetype
+
+import os
 
 fs = FileSystemUtils()
 
 
 class File(mongoengine.Document):
-    """ Represents File attached to Note """
+    """ Represents File attached to Note
 
-    linked_to = mongoengine.ReferenceField('Note', required=True)
-    uuid = mongoengine.fields.UUIDField(
-        binary=False, default=uuid4, required=True, unique=True
-    )
+        Place in app's dataflow:
+                                .-> Tag  
+        User -> Category -> Note -> File
+                                    ^^^^
+        
+        parent: Note
+        childrens: None
+    """
+
+    uuid = mongoengine.fields.UUIDField(binary=False, default=uuid4, required=True, unique=True)
     created = mongoengine.DateTimeField(default=datetime.utcnow())
     filename = mongoengine.StringField(max_length=256)
+    filesize = mongoengine.IntField()
     hash = mongoengine.StringField(max_length=16)
-    owner = mongoengine.ReferenceField('User', required=True)
+    mime = mongoengine.StringField(max_length=50)
 
     @property
     def path(self) -> str:
@@ -36,20 +44,14 @@ class File(mongoengine.Document):
     def is_file_exist(self) -> bool:
         return fs.is_file_exist(self.path)
 
-    def remove_from_filesystem(self) -> None:
-        fs.delete_file(self.path)
-
-    def write_hash(self) -> None:
-        self.hash = fs.file_hash(self.path, config.HASH_DIGEST_SIZE)
-        self.save()
 
     @property
-    def file_extension(self) -> str:
+    def extension(self) -> str:
         return self.filename.split('.')[-1]
 
     @property
     def filename_uuid(self) -> str:
-        return f'{self.uuid}.{self.file_extension}'
+        return f'{self.uuid}.{self.extension}'
 
     @property
     def is_file_on_disk_equal_to_saved_hash(self) -> bool:
@@ -57,24 +59,60 @@ class File(mongoengine.Document):
             return True
         return False
 
-    def to_custom_json(self) -> str:
-        data = json.loads(self.to_json())
-        data['linked_to'] = json.loads(self.linked_to.to_custom_json())
-        data['owner'] = json.loads(self.owner.to_json())
-        return json.dumps(data)
+    def remove_from_filesystem(self) -> None:
+        fs.delete_file(self.path)
+
+
+    def write_metadata(self) -> None:
+        # mime
+        kind = filetype.guess(self.path)
+        
+        if kind is not None:
+            self.mime = kind.mime  # filetype lib also have "kind.extension" property
+
+        # filesize    
+        self.filesize = str(os.path.getsize(self.path))
+        # hash
+        self.hash = fs.file_hash(self.path, config.HASH_DIGEST_SIZE)
+
+        del kind
+
+        self.save()
+
+    @property
+    def parent(self) -> Note:
+        Note.objects.filter(files__in=[self.uuid])[0]
+
+    @property
+    def owner(self) -> User:
+        Note.objects.filter(files__in=[self.uuid])[0]
+
+
+    meta = {'ordering': ['-id']}  # Descending Order
+
 
 
 class FileBM(BaseModel):
-    uuid: Optional[str]
-    linked_to: Optional[NoteBM]
+    uuid: Optional[UUID4]
+    created: Optional[datetime]
     filename: str = 'default.ext'
+    filesize: Optional[int]
     hash: Optional[str]
-    owner: Optional[UserBM]
+    
+    class Config:
+        orm_mode = True
 
 
 class FilesBM(BaseModel):
     __root__: List[FileBM]  # __root__
 
+    class Config:
+        orm_mode = True
+
 
 class FileEditBM(BaseModel):
+    uuid: UUID4
     filename: str  # yep, only filename can be changed
+
+    class Config:
+        orm_mode = True

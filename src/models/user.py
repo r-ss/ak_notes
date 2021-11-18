@@ -10,7 +10,16 @@ from uuid import uuid4
 
 
 class User(mongoengine.Document):
-    """ Represents user """
+    """ Represents User in database.
+
+        Place in app's dataflow:
+                                .-> Tag  
+        User -> Category -> Note -> File
+        ^^^^
+        
+        parent: None
+        childrens: Category
+    """
 
     uuid = mongoengine.fields.UUIDField(binary=False, default=uuid4, required=True)
     username = mongoengine.StringField(required=True, unique=True)
@@ -19,6 +28,9 @@ class User(mongoengine.Document):
     created = mongoengine.DateTimeField(default=datetime.utcnow())
     last_login = mongoengine.DateTimeField()
     is_superadmin = mongoengine.BooleanField(default=False)
+    categories = mongoengine.ListField(mongoengine.UUIDField(binary=False))
+
+    meta = {'ordering': ['-id']}  # Descending Order
 
 
 class UserBM(BaseModel):

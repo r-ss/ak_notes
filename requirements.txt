@@ -9,5 +9,6 @@ coverage # 6.1.2
 requests # 2.26.0 - used by FastAPI TestClient
 fastapi-utils # 0.2.1 - for @cbr decorator, Class Based Router
 python-multipart # 0.0.5 - Form data in FastAPI requires "python-multipart" to be installed
+filetype # 1.0.8
 flake8 # 4.0.1 - code style guide check
 oitnb # 0.2.2 - linter

@@ -32,9 +32,14 @@ class AuthCBV:
         if not is_password_correct(form_data.password):
             bad_req(config.AUTH_PASSWORD_REGEX['failmessage'])
 
-        token = login(form_data.username, form_data.password)
+        user, token = login(form_data.username, form_data.password)
 
-        return {'access_token': token, 'token_type': 'bearer'}
+        return {
+            'username': user.username,
+            'uuid': user.uuid,
+            'access_token': token,
+            'token_type': 'bearer'
+        }
 
 
     """ SECRET PAGE, USED IN TESTS TO ENSURE TOKEN MECHANIC WORKING """

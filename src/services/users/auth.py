@@ -5,7 +5,7 @@ from re import compile
 from fastapi import status, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 
-from models.user import User, UserTokenBM, UserTokenBM
+from models.user import User, UserBM, UserTokenBM
 from config import config
 
 from services.resslogger import RessLogger
@@ -85,6 +85,6 @@ def login(username: str, password: str) -> bool:
 
         log.info(f'User { db_user.username } logged in')
 
-        return token
+        return UserBM.from_orm(db_user), token
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Wrong password')

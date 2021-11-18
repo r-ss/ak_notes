@@ -35,7 +35,7 @@ class AppConfig(BaseSettings):
     TESTUSER_ALICE_PASSWORD: str = None  # username: Alice
     TESTUSER_BOB_PASSWORD: str = None  # username: Bob
     TESTUSER_SUPER_PASSWORD: str = None  # username: Jesus
-    TESTNOTE_BY_ALICE_UUID: str = '7bee43e5-e7e3-4be3-8a35-0f9ce3cd884b'  # used in tests
+    TESTNOTE_BY_ALICE_UUID: str = '8698adb3-82a6-4cc2-8e74-1d89034eb4b7'  # used in tests
     CODECLIMATE_TEST_REPORTER_ID: str = 'not available'
 
     # FORMATTERS
@@ -63,7 +63,7 @@ class AppConfig(BaseSettings):
     # ALLOWED_UPLOADS = ['jpg', 'jpeg', 'gif', 'png', 'zip', 'txt']
 
     class Config:
-        """Loads the dotenv file."""
+        """ Loads the dotenv file."""
 
         env_file: str = '.env'
 

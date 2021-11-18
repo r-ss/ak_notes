@@ -9,17 +9,16 @@ from uuid import uuid4
 from pydantic import BaseModel, constr, UUID4
 
 from models.user import UserBM
-from models.category import CategoryBM
+# from models.category import CategoryBM
 
 from config import config
 
-import json
-
 
 class Note(mongoengine.Document):
-    """ Represents short text Note
+    """ Represents Note in database.
+
         Main fields here are titile and body
-        Note shoud have single category Like Default / Work / Personal etc
+        Note shoud have single category Like Work / Personal etc
         Category can be changed after note creation
         Note can have multiple files assotiated with it
         Note can have multiple tags and can be listed by specific tag
@@ -27,6 +26,15 @@ class Note(mongoengine.Document):
 
         Note can be deleted
         TODO - remove assotiated with note files on deletion
+
+
+        Place in app's dataflow:
+                                .-> Tag  
+        User -> Category -> Note -> File
+                            ^^^^
+        
+        parent: Category
+        childrens: Tag, File
     """
 
     numerical_id = mongoengine.SequenceField(unique=True)
@@ -35,23 +43,22 @@ class Note(mongoengine.Document):
     modified = mongoengine.DateTimeField(default=datetime.datetime.utcnow())
     title = mongoengine.StringField(max_length=200)
     body = mongoengine.StringField(required=True)
-    owner = mongoengine.ReferenceField('User', required=True)
-    category = mongoengine.ReferenceField('Category', required=True)
-    tags = mongoengine.ListField(mongoengine.StringField())
+    # tags = mongoengine.ListField(mongoengine.UUIDField(binary=False))
+    files = mongoengine.ListField(mongoengine.UUIDField(binary=False))
 
     @property
     def shortbody(self) -> str:
         return self.body[0:64]
 
-    meta = {'ordering': ['-id']}
+    meta = {'ordering': ['-id']}  # Descending Order
 
-    def to_custom_json(self) -> str:
-        data = json.loads(self.to_json())
-        data['owner'] = json.loads(self.owner.to_json())
-        data['category'] = json.loads(self.category.to_json())
-        data['created'] = self.created.strftime(config.DATETIME_FORMAT_TECHNICAL)
-        data['modified'] = self.modified.strftime(config.DATETIME_FORMAT_TECHNICAL)
-        return json.dumps(data)
+    # def to_custom_json(self) -> str:
+    #     data = json.loads(self.to_json())
+    #     data['owner'] = json.loads(self.owner.to_json())
+    #     data['category'] = json.loads(self.category.to_json())
+    #     data['created'] = self.created.strftime(config.DATETIME_FORMAT_TECHNICAL)
+    #     data['modified'] = self.modified.strftime(config.DATETIME_FORMAT_TECHNICAL)
+    #     return json.dumps(data)
 
 
 # Base model frame
@@ -60,29 +67,37 @@ class NoteBM(BaseModel):
     uuid: Optional[UUID4]
     created: Optional[datetime.datetime]
     modified: Optional[datetime.datetime]
-    title: constr(max_length=50)
+    title: constr(max_length=200)
     body: str
-
-    class Config:
-        orm_mode = True
-
-
-# Used on json output
-class NoteExtendedBM(NoteBM):
     owner: Optional[UserBM]
     # files: Optional[list]
-    category: Optional[CategoryBM]
+    # category: Optional[CategoryBM]
     tags: Optional[List[str]]
 
     class Config:
         orm_mode = True
 
 
+# Used on json output
+# class NoteBM(NoteBM):
+#     owner: Optional[UserBM]
+#     # files: Optional[list]
+#     category: Optional[CategoryBM]
+#     tags: Optional[List[str]]
+
+#     class Config:
+#         orm_mode = True
+
+
 # Usen upon note update - added Optional fields
 class NoteEditBM(NoteBM):
-    title: Optional[constr(max_length=50)]
+    uuid: UUID4
+    title: Optional[constr(max_length=200)]
     body: Optional[str]
     tags: Optional[list]
+
+    class Config:
+        orm_mode = True
 
 
 class NotesBM(BaseModel):
@@ -93,7 +108,7 @@ class NotesBM(BaseModel):
 
 
 class NotesExtendedBM(BaseModel):
-    __root__: List[NoteExtendedBM]  # __root__
+    __root__: List[NoteBM]  # __root__
 
     class Config:
         orm_mode = True

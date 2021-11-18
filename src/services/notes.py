@@ -3,18 +3,17 @@ from datetime import datetime
 
 from fastapi import status, HTTPException
 
-from models.note import Note, NoteExtendedBM, NoteEditBM, NotesBM, NotesExtendedBM
+from models.note import Note, NoteBM, NoteEditBM, NotesBM, NotesExtendedBM
 from models.category import Category, CategoryBM
 from models.user import User, UserTokenBM
 
 from services.users.auth import owner_or_admin_can_proceed_only
 
-import json
 
-class NotesCRUD:
+class NotesService:
 
     """ CREATE SERVICE """
-    def create(note: NoteExtendedBM, token: UserTokenBM) -> Note:
+    def create(note: NoteBM, token: UserTokenBM) -> NoteBM:
         """ Create Note """
 
         db_user = User.objects.get(uuid=token.uuid)
@@ -24,10 +23,10 @@ class NotesCRUD:
             title=note.title, body=note.body, owner=db_user, category=cat, tags=note.tags
         )
         db_note.save()
-        return db_note.save()
+        return NoteBM.from_orm(db_note)
 
     """ READ SERVICE """
-    def read_specific(uuid: str, token: UserTokenBM) -> Union[Note, None]:
+    def read_specific(uuid: str, token: UserTokenBM) -> Union[NoteBM, None]:
         """ Get single specific note """
 
         try:
@@ -35,43 +34,37 @@ class NotesCRUD:
         except Note.DoesNotExist:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Note does not found')
 
-        print('RE >>>>>>>>>>>>>>>')
-        print(type(db_note.uuid))
-        print(str(db_note.uuid))
-
         owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
 
-        return NoteExtendedBM.from_orm(db_note)
+        return NoteBM.from_orm(db_note)
 
         # return db_note
 
-    def read_all_by_user(token: UserTokenBM) -> Note:
+    def read_all_by_user(token: UserTokenBM) -> NotesBM:
         """ Get all notes owned by current user """
 
         db_user = User.objects.get(uuid=token.uuid)
         db_notes = Note.objects.filter(owner=db_user)
 
-        # # TODO - Refactor following parse-unparse
-        # j = []
-        # for n in db_notes:
-        #     j.append(json.loads(n.to_custom_json()))
-
-        # print('>>>>>>')
-        # print(db_notes.values_list())
-        # print(type(list(db_notes)))
 
         return NotesBM.from_orm(list(db_notes))
 
-    def read_all_with_tag(tag: str, token: UserTokenBM) -> Note:
+    def read_all_with_tag(tag: str, token: UserTokenBM) -> NotesBM:
         """ Get all notes by current user that contains specific tag """
 
         db_user = User.objects.get(uuid=token.uuid)
-        return Note.objects.filter(owner=db_user, tags__in=[tag])
+        db_notes = Note.objects.filter(owner=db_user, tags__in=[tag])
+        return NotesBM.from_orm(list(db_notes))
 
     """ UPDATE SERVICE """
-    def update(note_uuid: str, input_note: NoteEditBM, token: UserTokenBM) -> Union[Note, None]:
+    def update(input_note: NoteEditBM, token: UserTokenBM) -> Union[NoteBM, None]:
         """ Edit note """
-        db_note = Note.objects.get(uuid=note_uuid)
+
+
+        try:
+            db_note = Note.objects.get(uuid=input_note.uuid)
+        except Note.DoesNotExist:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Note does not found')
 
         owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
 
@@ -89,28 +82,37 @@ class NotesCRUD:
 
         if not untouched:
             db_note.modified = datetime.utcnow()
-            return db_note.save()
+            db_note.save()
+            return NoteBM.from_orm(db_note)
         
         return None
 
-    def update_note_category(note_uuid: str, new_category: CategoryBM, token: UserTokenBM) -> Note:
-        """ Change note category """
-        db_note = Note.objects.get(uuid=note_uuid)
+    # def update_note_category(note_uuid: str, new_category: CategoryBM, token: UserTokenBM) -> NoteBM:
+    #     """ Change note category """
+        
+    #     try:
+    #         db_note = Note.objects.get(uuid=note_uuid)
+    #     except Note.DoesNotExist:
+    #         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Note does not found')
 
-        owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
+    #     owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
 
-        db_category = Category.objects.get(numerical_id=new_category.numerical_id)
-        db_note.category = db_category
-        return db_note.save()
+    #     db_category = Category.objects.get(numerical_id=new_category.numerical_id)
+    #     db_note.category = db_category
+    #     db_note.save()
+    #     return NoteBM.from_orm(db_note)
 
     """ DELETE SERVICE """
     def delete(uuid: str, token: UserTokenBM) -> None:
-        db_note = Note.objects.get(uuid=uuid)
 
-        
+        try:
+            db_note = Note.objects.get(uuid=uuid)
+        except Note.DoesNotExist:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Note does not found')
+
 
         owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
 
-        print('delete note', db_note)
+        # print('delete note', db_note)
 
         db_note.delete()
