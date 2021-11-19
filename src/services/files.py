@@ -1,6 +1,8 @@
-import json
-from typing import List, Union
+from typing import List
 from fastapi import status, HTTPException, UploadFile
+from models.category import Category
+
+from pydantic import UUID4
 
 from models.note import Note
 from models.file import File, FileBM, FileEditBM, FilesBM
@@ -17,7 +19,7 @@ fs = FileSystemUtils()
 class FilesService:
 
     """ CREATE SERVICE """
-    def create(note_uuid: str, uploads: List[UploadFile], token: UserTokenBM) -> Union[FilesBM, None]:
+    def create(note_uuid: UUID4, uploads: List[UploadFile], token: UserTokenBM) -> FilesBM:
         """ Handle multiple uploaded files.
             Saving every uploaded file on local disk.
             Create File item in database, savign hash checksum for file.
@@ -31,7 +33,7 @@ class FilesService:
         try:
             db_note = Note.objects.get(uuid=note_uuid)
         except Note.DoesNotExist:
-            return None
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Note does not found')
 
         owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
 
@@ -57,7 +59,7 @@ class FilesService:
         return FilesBM.parse_obj(processed_files_collector)
 
     """ READ SERVICE """
-    def read_specific(uuid: str, token: UserTokenBM) -> Union[FileBM, None]:
+    def read_specific(uuid: UUID4, token: UserTokenBM) -> FileBM:
         """ Get from db and return single specific file """
 
         try:
@@ -65,10 +67,10 @@ class FilesService:
         except File.DoesNotExist:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='File does not found')
 
-        # owner_or_admin_can_proceed_only(db_file.owner.uuid, token)
+        owner_or_admin_can_proceed_only(db_file.owner.uuid, token)
         return FileBM.from_orm(db_file)
 
-    def read_all_for_note(note_uuid: str, token: UserTokenBM) -> FilesBM:
+    def read_all_for_note(note_uuid: UUID4, token: UserTokenBM) -> FilesBM:
         """ Get all files attached to specific note """
 
         db_note = Note.objects.get(uuid=note_uuid)
@@ -80,26 +82,32 @@ class FilesService:
             db_file = File.objects.get(uuid=item)
             files_collector.append(FileBM.from_orm(db_file))
 
-        
-
         return FilesBM.from_orm(files_collector)
 
     def read_all_for_user(token: UserTokenBM) -> FilesBM:
         """ Get all files owned by current user """
 
         # TODO - check permissions
-
         db_user = User.objects.get(uuid=token.uuid)
-        db_notes = Note.objects.filter(owner=db_user)
+        db_categories = Category.objects(uuid__in=db_user.categories)
 
+        # TODO - refactor following
         files_collector = []
-        for db_note in db_notes:
-            for item in db_note.files:
-                try:
-                    db_file = File.objects.get(uuid=item)
-                except File.DoesNotExist:
-                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='File does not found')
-                files_collector.append(FileBM.from_orm(db_file))
+        for cat in db_categories:
+            db_notes = Note.objects(uuid__in=cat.notes)
+            for note in db_notes:
+                for file_uuid in note.files:
+                    db_file = File.objects(uuid__in=file_uuid)
+                    files_collector.append(FileBM.from_orm(db_file))
+
+        # files_collector = []
+        # for db_note in db_notes:
+        #     for item in db_note.files:
+        #         try:
+        #             db_file = File.objects.get(uuid=item)
+        #         except File.DoesNotExist:
+        #             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='File does not found')
+        #         files_collector.append(FileBM.from_orm(db_file))
 
         return FilesBM.parse_obj(files_collector)
 
@@ -110,28 +118,25 @@ class FilesService:
         db_file = File.objects.get(uuid=file.uuid)
 
         # TODO - check permissions
-        # owner_or_admin_can_proceed_only(db_file.owner.uuid, token)
+        owner_or_admin_can_proceed_only(db_file.owner.uuid, token)
 
-        if db_file.file_extension != new_filename.split('.')[-1]:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="You can't change file extension",
-            )
+        if db_file.extension != file.filename.split('.')[-1]:
+            raise HTTPException( status_code=status.HTTP_400_BAD_REQUEST, detail="You can't change file extension")
 
-        db_file.filename = new_filename
+        db_file.filename = file.filename
         return FileBM.from_orm(db_file.save())
 
     """ DELETE SERVICE """
-    def delete(uuid: str, token: UserTokenBM) -> None:
+    def delete(uuid: UUID4, token: UserTokenBM) -> None:
         """ Delete specific file from filesystem and from database """
 
         db_file = File.objects.get(uuid=uuid)
 
         # TODO - check permissions
-        # owner_or_admin_can_proceed_only(db_file.owner.uuid, token)
+        owner_or_admin_can_proceed_only(db_file.owner.uuid, token)
 
         # update info about file in note
-        db_note = Note.objects.filter(files__in=[db_file.uuid])[0]
+        db_note = db_file.parent
         db_note.files.remove(db_file.uuid)
         db_note.save()
 

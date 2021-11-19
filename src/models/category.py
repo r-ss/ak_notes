@@ -6,31 +6,35 @@ import mongoengine as mongoengine
 from pydantic import BaseModel, constr, UUID4
 
 from models.user import User
-from models.note import NotesBM
 
 class Category(mongoengine.Document):
     """ Represents Note Category in database.
         Work / Personal etc
 
-        Place in app's dataflow:
-                                .-> Tag  
-        User -> Category -> Note -> File
-                ^^^^^^^^
+      ┌───────────────────────────────────┐
+      │ Place in app's dataflow:          │
+      │                         .-> Tag   │
+      │ User -> Category -> Note -> File  │
+      │         ^^^^^^^^                  │
+      └───────────────────────────────────┘
         
         parent: User
         childrens: Note
     """
 
     numerical_id = mongoengine.SequenceField(unique=True)
-    uuid = mongoengine.fields.UUIDField(binary=False, default=uuid4, required=True, unique=True)
+    uuid = mongoengine.UUIDField(binary=False, default=uuid4, required=True, unique=True)
     name = mongoengine.StringField(max_length=36)
     created = mongoengine.DateTimeField(default=datetime.utcnow())
-    notes = mongoengine.ListField(mongoengine.UUIDField(binary=False))
+    notes = mongoengine.ListField(mongoengine.UUIDField(binary=False), default = [])
 
+    def get_last_for_user(db_user: User):
+        """ Used when we create Note without passing category, in this case Note will be created under last User's Category """
+        return Category.objects.get(uuid=db_user.categories[-1])
 
-    def choose_default():
-        # When note created, default category will be choosed for it and can be changed later
-        return Category.objects.first()
+    # def choose_default():
+    #     # When note created, default category will be choosed for it and can be changed later
+    #     return Category.objects.first()
 
     @property
     def parent(self) -> User:
@@ -50,7 +54,7 @@ class CategoryBM(BaseModel):
     uuid: Optional[UUID4]
     name: Optional[constr(max_length=36)]
     created: Optional[datetime]
-    notes: Optional[List[NotesBM]]
+    notes: Optional[List[UUID4]] = []
     
     class Config:
         orm_mode = True

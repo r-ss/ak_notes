@@ -2,6 +2,8 @@ from fastapi_utils.cbv import cbv
 from fastapi import status, Depends
 from fastapi_utils.inferring_router import InferringRouter
 
+from pydantic import UUID4
+
 from models.note import NoteBM, NoteEditBM
 from models.category import CategoryBM
 from models.user import UserTokenBM
@@ -16,13 +18,17 @@ router = InferringRouter(tags=['Notes'])
 class NotesCBV:
 
     """ CREATE """
-    @router.post('/notes', status_code=status.HTTP_201_CREATED)
-    def create_note(self, note: NoteBM, token: UserTokenBM = Depends(token_required)):
+    @router.post('/categories/{category_uuid}/notes', status_code=status.HTTP_201_CREATED, summary='Create Note under specific Category')
+    def create_note_under_specific_category(self, category_uuid: UUID4, note: NoteBM, token: UserTokenBM = Depends(token_required)):
+         return NotesService.create(note, token, category_uuid=category_uuid)
+
+    @router.post('/notes', status_code=status.HTTP_201_CREATED, summary='Create Note under default Category')
+    def create_note_under_default_category(self, note: NoteBM, token: UserTokenBM = Depends(token_required)):
         return NotesService.create(note, token)
 
     """ READ """
     @router.get('/notes/{uuid}')
-    def read_note(self, uuid: str, token: UserTokenBM = Depends(token_required)):
+    def read_note(self, uuid: UUID4, token: UserTokenBM = Depends(token_required)):
         """ Read one specific """
         return NotesService.read_specific(uuid, token)
 
@@ -31,13 +37,13 @@ class NotesCBV:
         """ Read all by current user """
         return NotesService.read_all_by_user(token)
 
-    @router.get('/notes/with-tag/{tag}')
-    def read_with_tag(self, tag: str, token: UserTokenBM = Depends(token_required)):
-        """ Read all notes by current user that contains specific tag """
-        return NotesService.read_all_with_tag(tag, token)
+    # @router.get('/notes/with-tag/{tag}')
+    # def read_with_tag(self, tag: str, token: UserTokenBM = Depends(token_required)):
+    #     """ Read all notes by current user that contains specific tag """
+    #     return NotesService.read_all_with_tag(tag, token)
 
     """ UPDATE """
-    @router.put('/notes/{note_uuid}', status_code=status.HTTP_200_OK)
+    @router.put('/notes', status_code=status.HTTP_200_OK, summary='Update one specific Note')
     def update(self, input_note: NoteEditBM, token: UserTokenBM = Depends(token_required)):
         return NotesService.update(input_note, token)
 
@@ -48,5 +54,5 @@ class NotesCBV:
 
     """ DELETE """
     @router.delete('/notes/{uuid}', status_code=status.HTTP_204_NO_CONTENT)
-    def delete_note(self, uuid: str, token: UserTokenBM = Depends(token_required)):
+    def delete_note(self, uuid: UUID4, token: UserTokenBM = Depends(token_required)):
         return NotesService.delete(uuid, token)

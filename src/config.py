@@ -35,8 +35,8 @@ class AppConfig(BaseSettings):
     TESTUSER_ALICE_PASSWORD: str = None  # username: Alice
     TESTUSER_BOB_PASSWORD: str = None  # username: Bob
     TESTUSER_SUPER_PASSWORD: str = None  # username: Jesus
-    TESTNOTE_BY_ALICE_UUID: str = '8698adb3-82a6-4cc2-8e74-1d89034eb4b7'  # used in tests
-    CODECLIMATE_TEST_REPORTER_ID: str = 'not available'
+    TESTNOTE_BY_ALICE_UUID: str = 'a71158eb-016f-4c56-b516-b6c7a49ed8c4'  # used in tests
+    CODECLIMATE_TEST_REPORTER_ID: str = 'not available locally, will be overwritten by ENV'
 
     # FORMATTERS
     DATETIME_FORMAT_TECHNICAL: str = '%Y-%m-%d %H:%M:%S'

@@ -1,10 +1,12 @@
-from typing import Union
+# from typing import Union
 from datetime import datetime
 
 from fastapi import status, HTTPException
 
-from models.note import Note, NoteBM, NoteEditBM, NotesBM, NotesExtendedBM
-from models.category import Category, CategoryBM
+from pydantic import UUID4
+
+from models.note import Note, NoteBM, NoteEditBM, NotesBM
+from models.category import Category
 from models.user import User, UserTokenBM
 
 from services.users.auth import owner_or_admin_can_proceed_only
@@ -13,20 +15,35 @@ from services.users.auth import owner_or_admin_can_proceed_only
 class NotesService:
 
     """ CREATE SERVICE """
-    def create(note: NoteBM, token: UserTokenBM) -> NoteBM:
+    def create(note: NoteBM, token: UserTokenBM, category_uuid=None) -> NoteBM:
         """ Create Note """
 
         db_user = User.objects.get(uuid=token.uuid)
-        cat = Category.choose_default()
 
         db_note = Note(
-            title=note.title, body=note.body, owner=db_user, category=cat, tags=note.tags
+            title=note.title,
+            body=note.body
         )
         db_note.save()
+
+        # Assing just created Note under specific or default category
+        if category_uuid:
+            try:
+                category = Category.objects.get(uuid=category_uuid)
+            except Category.DoesNotExist:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Category does not found')
+            owner_or_admin_can_proceed_only(category.owner.uuid, token)
+
+        else:
+            category = Category.get_last_for_user(db_user)
+
+        category.notes.append(db_note.uuid)
+        category.save()
+
         return NoteBM.from_orm(db_note)
 
     """ READ SERVICE """
-    def read_specific(uuid: str, token: UserTokenBM) -> Union[NoteBM, None]:
+    def read_specific(uuid: UUID4, token: UserTokenBM) -> NoteBM:
         """ Get single specific note """
 
         try:
@@ -38,26 +55,31 @@ class NotesService:
 
         return NoteBM.from_orm(db_note)
 
-        # return db_note
 
     def read_all_by_user(token: UserTokenBM) -> NotesBM:
         """ Get all notes owned by current user """
 
         db_user = User.objects.get(uuid=token.uuid)
-        db_notes = Note.objects.filter(owner=db_user)
+        db_categories = Category.objects(uuid__in=db_user.categories)
 
+        # TODO - Refactor following:
+        notes_collector = []
+        for cat in db_categories:
+            db_notes = Note.objects(uuid__in=cat.notes)
+            for n in db_notes:
+                notes_collector.append(n)
+       
+        return NotesBM.from_orm(notes_collector)
 
-        return NotesBM.from_orm(list(db_notes))
+    # def read_all_with_tag(tag: str, token: UserTokenBM) -> NotesBM:
+    #     """ Get all notes by current user that contains specific tag """
 
-    def read_all_with_tag(tag: str, token: UserTokenBM) -> NotesBM:
-        """ Get all notes by current user that contains specific tag """
-
-        db_user = User.objects.get(uuid=token.uuid)
-        db_notes = Note.objects.filter(owner=db_user, tags__in=[tag])
-        return NotesBM.from_orm(list(db_notes))
+    #     db_user = User.objects.get(uuid=token.uuid)
+    #     db_notes = Note.objects.filter(owner=db_user, tags__in=[tag])
+    #     return NotesBM.from_orm(list(db_notes))
 
     """ UPDATE SERVICE """
-    def update(input_note: NoteEditBM, token: UserTokenBM) -> Union[NoteBM, None]:
+    def update(input_note: NoteEditBM, token: UserTokenBM) -> NoteBM:
         """ Edit note """
 
 
@@ -76,9 +98,9 @@ class NotesService:
         if input_note.body:
             db_note.body = input_note.body
             untouched = False
-        if input_note.tags:
-            db_note.tags = input_note.tags
-            untouched = False
+        # if input_note.tags:
+        #     db_note.tags = input_note.tags
+        #     untouched = False
 
         if not untouched:
             db_note.modified = datetime.utcnow()

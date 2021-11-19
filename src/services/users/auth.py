@@ -5,6 +5,8 @@ from re import compile
 from fastapi import status, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 
+from pydantic import UUID4
+
 from models.user import User, UserBM, UserTokenBM
 from config import config
 
@@ -35,7 +37,7 @@ def hash_password(pwd) -> str:
     return bcrypt.hashpw(pwd, salt).decode('utf-8')
 
 
-def owner_or_admin_can_proceed_only(uuid: str, token: UserTokenBM) -> None:
+def owner_or_admin_can_proceed_only(uuid: UUID4, token: UserTokenBM) -> None:
     """ Compare uuid of object with uuid of current user
         Throw an HTTPException if current user is not own object
         Method can be invoked in a middle of views to stop unauthorized operations

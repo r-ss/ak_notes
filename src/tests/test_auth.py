@@ -40,7 +40,7 @@ def test_auth_secret_page_via_auth_header(client):
     assert result['message'] == 'this is secret message'
 
 
-def test_auth_secret_page_via_fixture(client, alice_token):
-    status_code, result = get(client, '/secretpage', auth=alice_token)
+def test_auth_secret_page_via_fixture(client, alice):
+    status_code, result = get(client, '/secretpage', auth=alice.token)
     assert status_code == 200
     assert result['message'] == 'this is secret message'

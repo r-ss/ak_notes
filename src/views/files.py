@@ -6,6 +6,8 @@ from fastapi import File as FastAPIFile
 from fastapi.responses import JSONResponse
 from fastapi_utils.inferring_router import InferringRouter
 
+from pydantic import UUID4
+
 from models.file import FileBM, FilesBM, FileEditBM
 from models.user import UserTokenBM
 
@@ -24,17 +26,17 @@ class FilesCBV:
 
     """ CREATE """
     @router.post('/notes/{note_uuid}/files', status_code=status.HTTP_201_CREATED)
-    def create(self, note_uuid: str, uploads: List[UploadFile] = FastAPIFile(...), token: UserTokenBM = Depends(token_required)):
+    def create(self, note_uuid: UUID4, uploads: List[UploadFile] = FastAPIFile(...), token: UserTokenBM = Depends(token_required)):
         return FilesService.create(note_uuid, uploads, token)
 
     """ READ """
     @router.get('/files/{uuid}')
-    def read(self, uuid: str, token: UserTokenBM = Depends(token_required)):
+    def read(self, uuid: UUID4, token: UserTokenBM = Depends(token_required)):
         """ Read single specific file """
         return FilesService.read_specific(uuid, token)
 
     @router.get('/notes/{note_uuid}/files')
-    def read_all_for_note(self, note_uuid: str, token: UserTokenBM = Depends(token_required)):
+    def read_all_for_note(self, note_uuid: UUID4, token: UserTokenBM = Depends(token_required)):
         """ Read all files attached to specific note """
         return FilesService.read_all_for_note(note_uuid, token)
 
@@ -51,6 +53,6 @@ class FilesCBV:
 
     """ DELETE """
     @router.delete('/files/{uuid}', status_code=status.HTTP_204_NO_CONTENT)
-    def delete_file(self, uuid: str, token: UserTokenBM = Depends(token_required)):
+    def delete_file(self, uuid: UUID4, token: UserTokenBM = Depends(token_required)):
         FilesService.delete(uuid, token)
         return {'file deleted'}

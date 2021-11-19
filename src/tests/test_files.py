@@ -1,5 +1,5 @@
 import os
-from tests.conftest import alice_token
+# from tests.conftest import alice
 from tests.testutils import get, put, delete, postFiles
 
 from config import config
@@ -14,6 +14,7 @@ uploaded_files = None
 def test_files_count(client, alice):
     global files_count  # TODO - is it possible to save variable for another test cases without "global" keyword?
     status_code, result = get(client, f'/users/{alice.uuid}/files', auth=alice.token)
+    # print(result, len(result))
     files_count = len(result)
     assert status_code == 200
 
@@ -30,12 +31,14 @@ def test_files_create(client, alice):
 def test_files_list_for_user(client, alice):
     global uploaded_files
     status_code, result = get(client, f'/users/{alice.uuid}/files', auth=alice.token)
+    # print(result, len(result))
     assert status_code == 200
     assert len(result) == files_count + len(uploaded_files)
 
 
 def test_files_list_for_note(client, alice):
     status_code, result = get(client, f'/notes/{config.TESTNOTE_BY_ALICE_UUID}/files', auth=alice.token)
+    # print(result, len(result))
     assert status_code == 200
     assert len(result) == files_count + len(uploaded_files)
 
@@ -47,23 +50,27 @@ def test_files_specific_by_owner(client, alice):
     assert status_code == 200
 
 
-# def test_files_specific_by_bob(client, bob):
-#     global uploaded_files
-#     status_code, result = get(client, f"/files/{uploaded_files[0]['uuid']}", auth=bob.token)
-#     assert status_code == 401
+def test_files_specific_by_bob(client, bob):
+    global uploaded_files
+    status_code, result = get(client, f"/files/{uploaded_files[0]['uuid']}", auth=bob.token)
+    assert status_code == 401
 
 
-# def test_file_update(client, alice):
-#     data = {'filename': 'supermeganame.png'}
-#     status_code, result = put(client, f"/files/{uploaded_files[0]['uuid']}", data, auth=alice.token)
-#     assert status_code == 200
+def test_file_update(client, alice):
+    global uploaded_files
+    data = {
+        'uuid': uploaded_files[0]['uuid'],
+        'filename': 'supermeganame.png'
+    }
+    status_code, result = put(client, f"/files/{uploaded_files[0]['uuid']}", data, auth=alice.token)
+    assert status_code == 200
 
 
-# def test_files_delete_by_bob(client, bob):
-#     global uploaded_files
-#     file = uploaded_files[0]
-#     status_code, result = delete(client, '/files/%s' % file['uuid'], auth=bob.token)
-#     assert status_code == 401
+def test_files_delete_by_bob(client, bob):
+    global uploaded_files
+    file = uploaded_files[0]
+    status_code, result = delete(client, '/files/%s' % file['uuid'], auth=bob.token)
+    assert status_code == 401
 
 
 def test_files_delete_by_owner(client, alice):
@@ -83,5 +90,6 @@ def test_file_after_delete(client, alice):
 def test_files_list_again(client, alice):
     global uploaded_files
     status_code, result = get(client, f'/users/{alice.uuid}/files', auth=alice.token)
+    # print(result, len(result))
     assert status_code == 200
     assert len(result) == files_count

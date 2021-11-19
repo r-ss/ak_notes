@@ -7,6 +7,7 @@ from pydantic import BaseModel, UUID4
 
 from config import config
 from models.user import User
+from models.category import Category
 from models.note import Note
 from services.filesystem import FileSystemUtils
 
@@ -20,16 +21,18 @@ fs = FileSystemUtils()
 class File(mongoengine.Document):
     """ Represents File attached to Note
 
-        Place in app's dataflow:
-                                .-> Tag  
-        User -> Category -> Note -> File
-                                    ^^^^
+      ┌───────────────────────────────────┐
+      │ Place in app's dataflow:          │
+      │                         .-> Tag   │
+      │ User -> Category -> Note -> File  │
+      │                             ^^^^  │
+      └───────────────────────────────────┘
         
         parent: Note
         childrens: None
     """
 
-    uuid = mongoengine.fields.UUIDField(binary=False, default=uuid4, required=True, unique=True)
+    uuid = mongoengine.UUIDField(binary=False, default=uuid4, required=True, unique=True)
     created = mongoengine.DateTimeField(default=datetime.utcnow())
     filename = mongoengine.StringField(max_length=256)
     filesize = mongoengine.IntField()
@@ -81,11 +84,14 @@ class File(mongoengine.Document):
 
     @property
     def parent(self) -> Note:
-        Note.objects.filter(files__in=[self.uuid])[0]
+        return Note.objects.filter(files__in=[self.uuid])[0]
 
     @property
     def owner(self) -> User:
-        Note.objects.filter(files__in=[self.uuid])[0]
+        db_note = Note.objects.filter(files__in=[self.uuid])[0]
+        db_category = Category.objects.filter(notes__in=[db_note.uuid])[0]
+        db_user = User.objects.filter(categories__in=[db_category.uuid])[0]
+        return db_user
 
 
     meta = {'ordering': ['-id']}  # Descending Order

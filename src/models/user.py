@@ -2,7 +2,7 @@ from datetime import datetime
 import mongoengine as mongoengine
 
 from pydantic import BaseModel, UUID4
-from typing import Optional
+from typing import Optional, List
 
 from fastapi import Form
 
@@ -12,23 +12,25 @@ from uuid import uuid4
 class User(mongoengine.Document):
     """ Represents User in database.
 
-        Place in app's dataflow:
-                                .-> Tag  
-        User -> Category -> Note -> File
-        ^^^^
+      ┌───────────────────────────────────┐
+      │ Place in app's dataflow:          │
+      │                         .-> Tag   │
+      │ User -> Category -> Note -> File  │
+      │ ^^^^                              │
+      └───────────────────────────────────┘
         
         parent: None
         childrens: Category
     """
 
-    uuid = mongoengine.fields.UUIDField(binary=False, default=uuid4, required=True)
+    uuid = mongoengine.UUIDField(binary=False, default=uuid4, required=True)
     username = mongoengine.StringField(required=True, unique=True)
     # email = mongoengine.EmailField(required=True, unique=True)
     userhash = mongoengine.StringField(required=True, max_length=200)
     created = mongoengine.DateTimeField(default=datetime.utcnow())
     last_login = mongoengine.DateTimeField()
     is_superadmin = mongoengine.BooleanField(default=False)
-    categories = mongoengine.ListField(mongoengine.UUIDField(binary=False))
+    categories = mongoengine.ListField(mongoengine.UUIDField(binary=False), default=[])
 
     meta = {'ordering': ['-id']}  # Descending Order
 
@@ -37,6 +39,7 @@ class UserBM(BaseModel):
     uuid: Optional[UUID4]
     username: str
     is_superadmin: Optional[bool] = False
+    categories: Optional[List[UUID4]] = []
 
     class Config:
         orm_mode = True
