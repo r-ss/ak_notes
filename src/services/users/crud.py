@@ -30,12 +30,8 @@ class UsersService:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='That user already exist')
 
         log.info(f'User "{ db_user.username }" has been registered')
-
-
         # create default Category for new User
         CategoriesService.create_default(db_user)
-
-
 
         return UserBM.from_orm(db_user)
 
@@ -74,7 +70,6 @@ class UsersService:
 
         # Delete all users categories
         for cat_uuid in db_user.categories:
-            CategoriesService.delete(cat_uuid, token, already_authenticated_user = db_user)
-
+            CategoriesService.delete(cat_uuid, token, already_authenticated_user=db_user)
 
         db_user.delete()

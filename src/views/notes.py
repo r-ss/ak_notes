@@ -23,7 +23,7 @@ class NotesCBV:
     """ CREATE """
     @router.post('/categories/{category_uuid}/notes', status_code=status.HTTP_201_CREATED, summary='Create Note under specific Category')
     def create_note_under_specific_category(self, category_uuid: UUID4, note: NoteBM, token: UserTokenBM = Depends(token_required)):
-         return NotesService.create(note, token, category_uuid=category_uuid)
+        return NotesService.create(note, token, category_uuid=category_uuid)
 
     @router.post('/notes', status_code=status.HTTP_201_CREATED, summary='Create Note under default Category')
     def create_note_under_default_category(self, note: NoteBM, token: UserTokenBM = Depends(token_required)):

@@ -18,7 +18,7 @@ class User(mongoengine.Document):
       │ User -> Category -> Note -> File  │
       │ ^^^^                              │
       └───────────────────────────────────┘
-        
+
         parent: None
         childrens: Category
     """
@@ -43,6 +43,7 @@ class UserBM(BaseModel):
 
     class Config:
         orm_mode = True
+
 
 class UserRegBM(UserBM):  # used upon user registeration
     password: Optional[str]

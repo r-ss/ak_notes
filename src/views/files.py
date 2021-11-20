@@ -1,14 +1,12 @@
-import json
 from typing import List
 from fastapi_utils.cbv import cbv
 from fastapi import status, Depends, UploadFile
 from fastapi import File as FastAPIFile
-from fastapi.responses import JSONResponse
 from fastapi_utils.inferring_router import InferringRouter
 
 from pydantic import UUID4
 
-from models.file import FileBM, FilesBM, FileEditBM
+from models.file import FileBM, FileEditBM
 from models.user import UserTokenBM
 
 from services.users.auth import token_required

@@ -4,8 +4,9 @@ from pydantic import UUID4
 from models.category import Category, CategoryBM, CategoriesBM
 from models.user import User, UserTokenBM
 
-from services.users.auth import owner_or_admin_can_proceed_only
+# from services.users.auth import owner_or_admin_can_proceed_only
 # from config import config
+
 
 class CategoriesService:
 
@@ -35,17 +36,14 @@ class CategoriesService:
     def create_default(db_user: User) -> None:
         """ Create default category for just registered user """
         c = Category(name=f'Default for {db_user.username}').save()
-
         db_user.categories.append(str(c.uuid))
         db_user.save()
-        # print(db_user)
-
 
     """ READ SERVICE """
     def read_specific(uuid: UUID4, token: UserTokenBM) -> CategoryBM:
         """ Get specific category item """
 
-        db_user = CategoriesService.get_user_helper(token)
+        # db_user = CategoriesService.get_user_helper(token)
 
         try:
             db_category = Category.objects.get(uuid=uuid)
@@ -55,7 +53,6 @@ class CategoriesService:
         # TODO - owner_or_admin_can_proceed_only(db_category.owner.uuid, token)
 
         return CategoryBM.from_orm(db_category)
-     
 
     def read_all(token: UserTokenBM) -> CategoriesBM:
         """ Get all category items by current user """
@@ -74,7 +71,7 @@ class CategoriesService:
     def update(category: CategoryBM, token: UserTokenBM) -> CategoryBM:
         """ Method to change category name """
 
-        db_user = CategoriesService.get_user_helper(token)
+        # db_user = CategoriesService.get_user_helper(token)
         db_category = Category.objects.get(uuid=category.uuid)
 
         # TODO - owner_or_admin_can_proceed_only(db_category.owner.uuid, token)
@@ -87,8 +84,7 @@ class CategoriesService:
         """ Delete Category from database """
 
         db_user = CategoriesService.get_user_helper(token, already_authenticated_user)
-        
-        
+
         # TODO - owner_or_admin_can_proceed_only(db_category.owner.uuid, token)
 
         db_category = Category.objects.get(uuid=uuid)

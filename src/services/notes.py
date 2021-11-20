@@ -57,7 +57,6 @@ class NotesService:
 
         return NoteBM.from_orm(db_note)
 
-
     def read_all_by_user(token: UserTokenBM, filter=None, limit=None, offset=None) -> NotesBM:
         """ Get all notes owned by current user """
 
@@ -71,7 +70,7 @@ class NotesService:
             db_notes = Note.objects(uuid__in=cat.notes)
 
             if filter:
-                db_notes = db_notes.filter( mongo_Q(title__contains=filter) | mongo_Q(body__contains=filter) )
+                db_notes = db_notes.filter(mongo_Q(title__contains=filter) | mongo_Q(body__contains=filter))
 
             if limit and offset:
                 if (limit + offset) > db_notes.count():
@@ -80,7 +79,7 @@ class NotesService:
 
             for n in db_notes:
                 notes_collector.append(n)
-       
+
         return NotesBM.from_orm(notes_collector)
 
     # def read_all_with_tag(tag: str, token: UserTokenBM) -> NotesBM:
@@ -93,7 +92,6 @@ class NotesService:
     """ UPDATE SERVICE """
     def update(input_note: NoteEditBM, token: UserTokenBM) -> NoteBM:
         """ Edit note """
-
 
         try:
             db_note = Note.objects.get(uuid=input_note.uuid)
@@ -118,12 +116,12 @@ class NotesService:
             db_note.modified = datetime.utcnow()
             db_note.save()
             return NoteBM.from_orm(db_note)
-        
+
         return None
 
     # def update_note_category(note_uuid: str, new_category: CategoryBM, token: UserTokenBM) -> NoteBM:
     #     """ Change note category """
-        
+
     #     try:
     #         db_note = Note.objects.get(uuid=note_uuid)
     #     except Note.DoesNotExist:
@@ -143,7 +141,6 @@ class NotesService:
             db_note = Note.objects.get(uuid=uuid)
         except Note.DoesNotExist:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Note does not found')
-
 
         owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
 

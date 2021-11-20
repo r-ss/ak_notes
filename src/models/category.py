@@ -18,7 +18,7 @@ class Category(mongoengine.Document):
       │ User -> Category -> Note -> File  │
       │         ^^^^^^^^                  │
       └───────────────────────────────────┘
-        
+
         parent: User
         childrens: Note
     """
@@ -27,7 +27,7 @@ class Category(mongoengine.Document):
     uuid = mongoengine.UUIDField(binary=False, default=uuid4, required=True, unique=True)
     name = mongoengine.StringField(max_length=36)
     created = mongoengine.DateTimeField(default=datetime.utcnow())
-    notes = mongoengine.ListField(mongoengine.UUIDField(binary=False), default = [])
+    notes = mongoengine.ListField(mongoengine.UUIDField(binary=False), default=[])
 
     def get_last_for_user(db_user: User):
         """ Used when we create Note without passing category,
@@ -43,7 +43,6 @@ class Category(mongoengine.Document):
     def owner(self) -> User:
         return User.objects.filter(categories__in=[self.uuid])[0]
 
-
     meta = {'ordering': ['-id']}  # Descending Order
 
 
@@ -55,7 +54,7 @@ class CategoryBM(BaseModel):
     name: Optional[constr(max_length=36)]
     created: Optional[datetime]
     notes: Optional[List[UUID4]] = []
-    
+
     class Config:
         orm_mode = True
 

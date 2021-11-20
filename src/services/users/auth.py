@@ -25,6 +25,7 @@ async def token_required(token: str = Depends(oauth2_scheme)) -> UserTokenBM:
     token = UserTokenBM.parse_obj(dict)
     return token
 
+
 def owner_or_admin_can_proceed_only(uuid: UUID4, token: UserTokenBM) -> None:
     """ Compare uuid of object with uuid of current user
         Throw an HTTPException if current user is not own object
@@ -36,6 +37,7 @@ def owner_or_admin_can_proceed_only(uuid: UUID4, token: UserTokenBM) -> None:
             detail='Seems like you are not authorized to this',
         )
 
+
 class Auth:
 
     def is_username_valid(username) -> bool:
@@ -43,13 +45,10 @@ class Auth:
         regex = compile(config.AUTH_USERNAME_REGEX['regex'])
         return regex.match(username) is not None
 
-
     def is_password_valid(password) -> bool:
         """ Password validation """
         regex = compile(config.AUTH_PASSWORD_REGEX['regex'])
         return regex.match(password) is not None
-
-
 
     def hash_password(pwd) -> str:
         """ Application-wide method to get hash from a password
@@ -68,7 +67,7 @@ class Auth:
             'username': db_user.username,
             'uuid': str(db_user.uuid),
             'is_superadmin': db_user.is_superadmin
-        }     
+        }
 
         return jwt.encode(payload, config.SECRET_KEY, algorithm=config.AUTH_HASHING_ALGORITHM)  # encrypt payload into token
 
@@ -81,7 +80,7 @@ class Auth:
             'username': db_user.username,
             'uuid': str(db_user.uuid),
             'is_superadmin': db_user.is_superadmin
-        }     
+        }
 
         return jwt.encode(payload, config.SECRET_KEY, algorithm=config.AUTH_HASHING_ALGORITHM)  # encrypt payload into token
 

@@ -27,7 +27,7 @@ class FilesService:
             Returns list of oploaded files.
         """
 
-        db_user = User.objects.get(uuid=token.uuid)
+        # db_user = User.objects.get(uuid=token.uuid)
         fs.check_dir(config.STORAGE['ROOT'])  # create storage dir on filesystem if not exist
 
         try:
@@ -49,7 +49,7 @@ class FilesService:
 
             db_file.write_metadata()
             processed_files_collector.append(FileBM.from_orm(db_file))
-        
+
             # update info about files in note
             db_note.files.append(db_file.uuid)
             db_note.save()
@@ -96,7 +96,7 @@ class FilesService:
                 db_files = File.objects(uuid__in=db_note.files)
                 for db_file in db_files:
                     files_collector.append(db_file)
-                
+
         return FilesBM.from_orm(files_collector)
 
     """ UPDATE SERVICE """
@@ -109,7 +109,7 @@ class FilesService:
         owner_or_admin_can_proceed_only(db_file.owner.uuid, token)
 
         if db_file.extension != file.filename.split('.')[-1]:
-            raise HTTPException( status_code=status.HTTP_400_BAD_REQUEST, detail="You can't change file extension")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You can't change file extension")
 
         db_file.filename = file.filename
         return FileBM.from_orm(db_file.save())
@@ -132,5 +132,3 @@ class FilesService:
             db_file.remove_from_filesystem()
             if not db_file.is_file_exist:
                 db_file.delete()
-
-

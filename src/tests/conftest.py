@@ -15,6 +15,7 @@ from tests.testutils import get, postForm
 
 alice_save = bob_save = jesus_save = None
 
+
 class LoggedInTestUser:
     """ Represents logged-in test user, used only in tests """
 
@@ -36,7 +37,7 @@ def alice(client):
 
     # send login request only on first call
     if not alice_save:
-        
+
         login_data = {
             'username': 'Alice',
             'password': config.TESTUSER_ALICE_PASSWORD,
@@ -49,6 +50,7 @@ def alice(client):
             alice_save.default_category_uuid = result['uuid']
 
     return alice_save
+
 
 @pytest.fixture
 def bob(client):
@@ -68,6 +70,7 @@ def bob(client):
             bob_save.default_category_uuid = result['uuid']
 
     return bob_save
+
 
 @pytest.fixture
 def jesus(client):

@@ -27,7 +27,7 @@ class File(mongoengine.Document):
       │ User -> Category -> Note -> File  │
       │                             ^^^^  │
       └───────────────────────────────────┘
-        
+
         parent: Note
         childrens: None
     """
@@ -47,7 +47,6 @@ class File(mongoengine.Document):
     def is_file_exist(self) -> bool:
         return fs.is_file_exist(self.path)
 
-
     @property
     def extension(self) -> str:
         return self.filename.split('.')[-1]
@@ -65,15 +64,14 @@ class File(mongoengine.Document):
     def remove_from_filesystem(self) -> None:
         fs.delete_file(self.path)
 
-
     def write_metadata(self) -> None:
         # mime
         kind = filetype.guess(self.path)
-        
+
         if kind is not None:
             self.mime = kind.mime  # filetype lib also have "kind.extension" property
 
-        # filesize    
+        # filesize
         self.filesize = str(os.path.getsize(self.path))
         # hash
         self.hash = fs.file_hash(self.path, config.HASH_DIGEST_SIZE)
@@ -96,14 +94,13 @@ class File(mongoengine.Document):
     meta = {'ordering': ['-id']}  # Descending Order
 
 
-
 class FileBM(BaseModel):
     uuid: Optional[UUID4]
     created: Optional[datetime]
     filename: str = 'default.ext'
     filesize: Optional[int]
     hash: Optional[str]
-    
+
     class Config:
         orm_mode = True
 

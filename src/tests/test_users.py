@@ -11,8 +11,9 @@ user_token_save = None
 
 
 def test_users_get_all(client):
-    status_code, result = get(client, f'/users')
+    status_code, result = get(client, '/users')
     assert status_code == 200
+
 
 def test_user_bad_input(client):
     # No password provided

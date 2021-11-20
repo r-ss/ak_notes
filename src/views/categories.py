@@ -32,7 +32,7 @@ class CategoriesCBV:
 
     @router.get('/categories/{uuid}')
     def category_read(self, uuid: UUID4, token: UserTokenBM = Depends(token_required)):
-        return CategoriesService.read_specific(uuid, token)    
+        return CategoriesService.read_specific(uuid, token)
 
     """ UPDATE """
     @router.put('/categories/{uuid}')

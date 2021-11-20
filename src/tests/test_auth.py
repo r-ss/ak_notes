@@ -1,4 +1,4 @@
-from tests.testutils import get, postForm
+from tests.testutils import postForm
 
 from config import config
 

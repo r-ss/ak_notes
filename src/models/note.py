@@ -6,10 +6,10 @@ from uuid import uuid4
 
 from pydantic import BaseModel, constr, UUID4
 
-from models.user import User, UserBM
+from models.user import User
 from models.category import Category
 
-from config import config
+# from config import config
 
 
 class Note(mongoengine.Document):
@@ -22,7 +22,7 @@ class Note(mongoengine.Document):
         Note can have multiple tags and can be listed by specific tag
         Note can be deleted
         TODO - remove assotiated with note files on deletion
-        
+
       ┌───────────────────────────────────┐
       │ Place in app's dataflow:          │
       │                         .-> Tag   │
@@ -54,7 +54,7 @@ class Note(mongoengine.Document):
     @property
     def owner(self) -> User:
         return User.objects.filter(categories__in=[self.parent.uuid])[0]
-    
+
     meta = {'ordering': ['-id']}  # Descending Order
 
 
