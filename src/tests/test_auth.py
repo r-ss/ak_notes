@@ -31,16 +31,16 @@ def test_auth_bad_password(client):
     data = {'username': 'Alice', 'password': 'wrong-password'}
     status_code, result = postForm(client, '/token', data)
     assert result['detail'] == 'Wrong password'
-    assert status_code == 400
+    assert status_code == 401
 
 
-def test_auth_secret_page_via_auth_header(client):
-    status_code, result = get(client, '/secretpage', headers={'Authorization': 'bearer ' + token_save})
-    assert status_code == 200
-    assert result['message'] == 'this is secret message'
+# def test_auth_secret_page_via_auth_header(client):
+#     status_code, result = get(client, '/secretpage', headers={'Authorization': 'bearer ' + token_save})
+#     assert status_code == 200
+#     assert result['message'] == 'this is secret message'
 
 
-def test_auth_secret_page_via_fixture(client, alice):
-    status_code, result = get(client, '/secretpage', auth=alice.token)
-    assert status_code == 200
-    assert result['message'] == 'this is secret message'
+# def test_auth_secret_page_via_fixture(client, alice):
+#     status_code, result = get(client, '/secretpage', auth=alice.token)
+#     assert status_code == 200
+#     assert result['message'] == 'this is secret message'

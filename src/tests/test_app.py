@@ -26,7 +26,6 @@ def test_filesystem(client):
     assert os.path.isfile(testfile_path) is True
     h = blake2b(digest_size=config.HASH_DIGEST_SIZE)
     h.update(open(testfile_path, 'rb').read())
-    # print(len('011651d77cf25898'))
     assert h.hexdigest() == '011651d77cf25898'
 
 

@@ -1,13 +1,14 @@
-from typing import Union
 from fastapi import status, HTTPException
 
 import mongoengine as mongoengine  # to catch mongoengine.errors.NotUniqueError on duplicate user registration
 
-from models.user import User, UserBM, UserTokenBM, UserRegBM, UserTokenBM
+from models.user import User, UserBM, UsersBM, UserTokenBM, UserRegBM, UserTokenBM
 
 # from config import config
 
-from services.users.auth import hash_password, owner_or_admin_can_proceed_only
+from pydantic import UUID4
+
+from services.users.auth import Auth, owner_or_admin_can_proceed_only
 from services.categories import CategoriesService
 
 from services.resslogger import RessLogger
@@ -21,7 +22,7 @@ class UsersService:
     def create(user: UserRegBM) -> UserBM:
         """ Create user in database and return it """
 
-        db_user = User(username=user.username, userhash=hash_password(user.password))
+        db_user = User(username=user.username, userhash=Auth.hash_password(user.password))
 
         try:
             db_user.save()
@@ -39,8 +40,12 @@ class UsersService:
         return UserBM.from_orm(db_user)
 
     """ READ SERVICE """
-    def read(uuid: str) -> UserBM:
-        """ Get specific user from database and return. Return None if not found in db """
+    def read_all() -> UsersBM:
+        """ Get all users from database and return them """
+        return UsersBM.from_orm(list(User.objects.all()))
+
+    def read_specific(uuid: UUID4) -> UserBM:
+        """ Get specific user from database and return """
 
         try:
             db_user = User.objects.get(uuid=uuid)
@@ -61,7 +66,7 @@ class UsersService:
         return UserBM.from_orm(db_user.save())
 
     """ DELETE SERVICE """
-    def delete(uuid: str, token: UserTokenBM) -> None:
+    def delete(uuid: UUID4, token: UserTokenBM) -> None:
         """ Delete user from database """
 
         db_user = User.objects.get(uuid=uuid)

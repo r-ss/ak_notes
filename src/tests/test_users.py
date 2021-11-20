@@ -10,6 +10,10 @@ user_password_save = None
 user_token_save = None
 
 
+def test_users_get_all(client):
+    status_code, result = get(client, f'/users')
+    assert status_code == 200
+
 def test_user_bad_input(client):
     # No password provided
     data = {'username': 'nopassword'}
@@ -39,7 +43,7 @@ def test_user_create(client):
     assert status_code == 201  # HTTP_201_CREATED
 
 
-def test_user_get(client):
+def test_user_get_specific(client):
     status_code, result = get(client, f'/users/{user_uuid_save}')
     assert result['username'] == user_username_save
     assert status_code == 200
@@ -50,7 +54,6 @@ def test_user_login(client):
     data = {'username': user_username_save, 'password': user_password_save}
     status_code, result = postForm(client, '/token', data)
     user_token_save = result['access_token']
-    # print(f'{user_username_save} logged in, token: {user_token_save}')
     assert status_code == 202
 
 

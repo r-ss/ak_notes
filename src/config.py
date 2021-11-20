@@ -55,7 +55,8 @@ class AppConfig(BaseSettings):
         'failmessage': 'Password must at least 6 characters and may contain . - _ symbols'  # also can be used as hint
     }
     AUTH_HASHING_ALGORITHM: str = 'HS256'  # algorithm to encode/decode JWT user tokens
-    AUTH_TOKEN_EXPIRATION_TIME: datetime.timedelta = datetime.timedelta(days=30)
+    AUTH_ACCESS_TOKEN_EXPIRATION_TIME: datetime.timedelta = datetime.timedelta(minutes=60)
+    AUTH_REFRESH_TOKEN_EXPIRATION_TIME: datetime.timedelta = datetime.timedelta(days=30)
 
     # MISC
     HASH_DIGEST_SIZE: int = 8  # for hashing files with blake2b

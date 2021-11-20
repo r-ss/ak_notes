@@ -93,7 +93,6 @@ class File(mongoengine.Document):
         db_user = User.objects.filter(categories__in=[db_category.uuid])[0]
         return db_user
 
-
     meta = {'ordering': ['-id']}  # Descending Order
 
 

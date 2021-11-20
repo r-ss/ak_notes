@@ -54,11 +54,10 @@ class Note(mongoengine.Document):
     @property
     def owner(self) -> User:
         return User.objects.filter(categories__in=[self.parent.uuid])[0]
-
+    
     meta = {'ordering': ['-id']}  # Descending Order
 
 
-# Base model frame
 class NoteBM(BaseModel):
     numerical_id: Optional[int]
     uuid: Optional[UUID4]
@@ -71,7 +70,6 @@ class NoteBM(BaseModel):
 
     class Config:
         orm_mode = True
-
 
 
 # Usen upon note update - added Optional fields

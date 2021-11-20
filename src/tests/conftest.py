@@ -4,14 +4,16 @@ from config import config
 
 from main import testclient
 
-
 from tests.testutils import get, postForm
 
-# here test users tokens will be saved after login for use in tests
-# token_alice_save = None
-# token_bob_save = None
-# token_super_save = None
 
+""" We have 3 Test users:
+    - Alice, regular user
+    - Bob, regular user
+    - Jesus, with admin privilegies
+"""
+
+alice_save = bob_save = jesus_save = None
 
 class LoggedInTestUser:
     """ Represents logged-in test user, used only in tests """
@@ -20,11 +22,6 @@ class LoggedInTestUser:
         self.uuid: str = uuid
         self.token: str = token
         self.default_category_uuid = None
-
-# test users, Alice and Bob are regilat users, Jesus have admin privilegies
-alice_save = None
-bob_save = None
-jesus_save = None
 
 
 @pytest.fixture
@@ -39,6 +36,7 @@ def alice(client):
 
     # send login request only on first call
     if not alice_save:
+        
         login_data = {
             'username': 'Alice',
             'password': config.TESTUSER_ALICE_PASSWORD,

@@ -21,6 +21,7 @@ routers = [
     notes_router
 ]
 
+
 # Connecting to DB
 mg = mongoengine.connect(host=config.DBHOST)
 

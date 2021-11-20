@@ -11,6 +11,8 @@ from models.user import User, UserTokenBM
 
 from services.users.auth import owner_or_admin_can_proceed_only
 
+from mongoengine.queryset.visitor import Q as mongo_Q
+
 
 class NotesService:
 
@@ -56,7 +58,7 @@ class NotesService:
         return NoteBM.from_orm(db_note)
 
 
-    def read_all_by_user(token: UserTokenBM) -> NotesBM:
+    def read_all_by_user(token: UserTokenBM, filter=None, limit=None, offset=None) -> NotesBM:
         """ Get all notes owned by current user """
 
         db_user = User.objects.get(uuid=token.uuid)
@@ -65,7 +67,17 @@ class NotesService:
         # TODO - Refactor following:
         notes_collector = []
         for cat in db_categories:
+
             db_notes = Note.objects(uuid__in=cat.notes)
+
+            if filter:
+                db_notes = db_notes.filter( mongo_Q(title__contains=filter) | mongo_Q(body__contains=filter) )
+
+            if limit and offset:
+                if (limit + offset) > db_notes.count():
+                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="We don't have so much Notes")
+                db_notes = db_notes[offset: limit + offset]
+
             for n in db_notes:
                 notes_collector.append(n)
        

@@ -7,6 +7,7 @@ from pydantic import BaseModel, constr, UUID4
 
 from models.user import User
 
+
 class Category(mongoengine.Document):
     """ Represents Note Category in database.
         Work / Personal etc
@@ -29,12 +30,10 @@ class Category(mongoengine.Document):
     notes = mongoengine.ListField(mongoengine.UUIDField(binary=False), default = [])
 
     def get_last_for_user(db_user: User):
-        """ Used when we create Note without passing category, in this case Note will be created under last User's Category """
+        """ Used when we create Note without passing category,
+            so Note will be created under last User's Category
+        """
         return Category.objects.get(uuid=db_user.categories[-1])
-
-    # def choose_default():
-    #     # When note created, default category will be choosed for it and can be changed later
-    #     return Category.objects.first()
 
     @property
     def parent(self) -> User:
@@ -43,6 +42,7 @@ class Category(mongoengine.Document):
     @property
     def owner(self) -> User:
         return User.objects.filter(categories__in=[self.uuid])[0]
+
 
     meta = {'ordering': ['-id']}  # Descending Order
 

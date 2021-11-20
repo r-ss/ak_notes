@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi_utils.cbv import cbv
 from fastapi import status, Depends
 from fastapi_utils.inferring_router import InferringRouter
@@ -5,11 +7,12 @@ from fastapi_utils.inferring_router import InferringRouter
 from pydantic import UUID4
 
 from models.note import NoteBM, NoteEditBM
-from models.category import CategoryBM
+# from models.category import CategoryBM
 from models.user import UserTokenBM
 
 from services.users.auth import token_required
 from services.notes import NotesService
+
 
 router = InferringRouter(tags=['Notes'])
 
@@ -33,9 +36,14 @@ class NotesCBV:
         return NotesService.read_specific(uuid, token)
 
     @router.get('/notes')
-    def read_all_notes(self, token: UserTokenBM = Depends(token_required)):
+    def read_all_notes(self,
+                       token: UserTokenBM = Depends(token_required),
+                       filter: Optional[str] = None,
+                       limit: Optional[int] = None,
+                       offset: Optional[int] = None
+                       ):
         """ Read all by current user """
-        return NotesService.read_all_by_user(token)
+        return NotesService.read_all_by_user(token, filter, limit, offset)
 
     # @router.get('/notes/with-tag/{tag}')
     # def read_with_tag(self, tag: str, token: UserTokenBM = Depends(token_required)):

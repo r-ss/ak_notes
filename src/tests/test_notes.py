@@ -25,7 +25,7 @@ def test_note_create_under_default_category(client, alice):
     global note_data_save
     note_data_save = data = {
         'title': f'new_note_{ make_random_string(4) }',
-        'body': 'boboboboob'
+        'body': 'note in default category by Alice'
     }
     status_code, result = post(client, '/notes', data, auth=alice.token)
     note_uuid_save = result['uuid']
@@ -38,7 +38,7 @@ def test_note_create_under_specific_category(client, alice):
     global note_data_save
     data = {
         'title': f'new_nogte_{ make_random_string(4) }',
-        'body': 'SPECIFIIIIC'
+        'body': 'note in specific category by Alice'
     }
     status_code, result = post(client, f'categories/{alice.default_category_uuid}/notes', data, auth=alice.token)
     # note_uuid_save = result['uuid']
@@ -63,6 +63,14 @@ def test_note_read_by_bob(client, bob):
     assert status_code == 401
 
 
+def test_note_filter(client, alice):
+    status_code, result = get(client, f'/notes?filter=huy', auth=alice.token)
+    assert status_code == 200
+
+def test_note_pagination(client, alice):
+    status_code, result = get(client, f'/notes?filter=huy&limit=1&offset=1', auth=alice.token)
+    assert status_code in [200, 400]
+
 # def test_notes_list_by_tag(client, alice):
 #     status_code, result = get(client, '/notes/with-tag/supertag', auth=alice.token)
 #     assert status_code == 200
@@ -70,8 +78,6 @@ def test_note_read_by_bob(client, bob):
 
 
 def test_note_update_by_owner(client, alice):
-    # note_uuid_save = config.TESTNOTE_BY_ALICE_UUID
-
     # note_data_save = {
     #     'uuid': note_uuid_save,
     #     'title': f'new_note_{ make_random_string(4) }',
@@ -97,7 +103,6 @@ def test_note_update_by_owner(client, alice):
 
 
 def test_note_update_by_bob(client, bob):
-    # note_uuid_save = config.TESTNOTE_BY_ALICE_UUID
     data = {'uuid': note_uuid_save, 'title': 'i_am_bob'}
     status_code, result = put(client, f'/notes', data, auth=bob.token)
     assert status_code == 401
@@ -124,7 +129,15 @@ def test_note_after_delete(client, alice):
     assert status_code == 404
 
 
-def test_notes_list_again(client, alice):
+def test_remove_unnecessary_notes(client, alice):
+    status_code, result = get(client, '/notes', auth=alice.token)
+
+    for item in result:
+        uuid =  item['uuid']
+        if uuid != config.TESTNOTE_BY_ALICE_UUID:
+            status_code2, result2 = delete(client, f'/notes/{uuid}', auth=alice.token)
+            assert status_code2 == 204
+
     status_code, result = get(client, '/notes', auth=alice.token)
     assert status_code == 200
-    assert len(result) == notes_count + 1
+    assert len(result) == notes_count
