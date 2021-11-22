@@ -1,4 +1,4 @@
-from tests.testutils import post, get, put, delete
+from tests.testutils import post, get, put, patch, delete
 
 from config import config
 
@@ -49,6 +49,11 @@ def test_note_create_under_specific_category(client, alice):
     assert status_code == 201  # HTTP_201_CREATED
 
 
+def test_notes_list_in_specific_category(client, alice):
+    status_code, result = get(client, f'categories/{alice.default_category_uuid}/notes', auth=alice.token)
+    assert status_code == 200
+
+
 def test_notes_list(client, alice):
     status_code, result = get(client, '/notes', auth=alice.token)
     assert status_code == 200
@@ -82,33 +87,31 @@ def test_note_pagination(client, alice):
 
 
 def test_note_update_by_owner(client, alice):
-    # note_data_save = {
-    #     'uuid': note_uuid_save,
-    #     'title': f'new_note_{ make_random_string(4) }',
-    #     'body': 'boboboboob'
-    # }
-
-    # Title
-    data = {'uuid': note_uuid_save, 'title': '%s_upd' % note_data_save['title'], 'body': note_data_save['body']}
+    # Complete Note - uuid, title, body
+    data = {
+        'uuid': note_uuid_save,
+        'title': '%s_upd' % note_data_save['title'],
+        'body': note_data_save['body']
+    }
     status_code, result = put(client, '/notes', data, auth=alice.token)
     assert result['title'] == '%s_upd' % note_data_save['title']
     assert result['body'] == note_data_save['body']
     assert status_code == 200
-    # Body
-    data = {'uuid': note_uuid_save, 'body': '%s_upd' % note_data_save['body']}
-    status_code, result = put(client, '/notes', data, auth=alice.token)
+
+
+def test_note_patch_by_owner(client, alice):
+    data = {
+        'uuid': note_uuid_save,
+        'body': '%s_upd' % note_data_save['body']
+    }
+    status_code, result = patch(client, f'/notes/{note_uuid_save}', data, auth=alice.token)
     assert result['body'] == '%s_upd' % note_data_save['body']
     assert status_code == 200
-    # Tags
-    # data = {'uuid': note_uuid_save, 'tags': ['tag7', 'tag2', 'tag600']}
-    # status_code, result = put(client, f'/notes/{note_uuid_save}', data, auth=alice.token)
-    # assert result['tags'] == data['tags']
-    # assert status_code == 200
 
 
 def test_note_update_by_bob(client, bob):
     data = {'uuid': note_uuid_save, 'title': 'i_am_bob'}
-    status_code, result = put(client, '/notes', data, auth=bob.token)
+    status_code, result = patch(client, f'/notes/{note_uuid_save}', data, auth=bob.token)
     assert status_code == 401
 
 

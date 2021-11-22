@@ -24,18 +24,18 @@ class CategoriesCBV:
         return CategoriesService.create(category.name, token)
 
     """ READ """
-    @router.get('/categories')
+    @router.get('/categories', summary='Read all categories by current user')
     def category_read_all(self, token: UserTokenBM = Depends(token_required), only_last: Optional[str] = None):
         if not only_last:
             return CategoriesService.read_all(token)
         return CategoriesService.get_last_one(token)
 
-    @router.get('/categories/{uuid}')
+    @router.get('/categories/{uuid}', summary='Read specific category')
     def category_read(self, uuid: UUID4, token: UserTokenBM = Depends(token_required)):
         return CategoriesService.read_specific(uuid, token)
 
     """ UPDATE """
-    @router.put('/categories/{uuid}')
+    @router.patch('/categories/{uuid}')
     def category_update(self, category: CategoryBM, token: UserTokenBM = Depends(token_required)):
         if not category.uuid:
             raise ValueError('uuid not given')

@@ -1,6 +1,6 @@
 import os
 # from tests.conftest import alice
-from tests.testutils import get, put, delete, postFiles
+from tests.testutils import get, patch, delete, postFiles
 
 from config import config
 
@@ -59,7 +59,7 @@ def test_file_update(client, alice):
         'uuid': uploaded_files[0]['uuid'],
         'filename': 'supermeganame.png'
     }
-    status_code, result = put(client, f"/files/{uploaded_files[0]['uuid']}", data, auth=alice.token)
+    status_code, result = patch(client, f"/files/{uploaded_files[0]['uuid']}", data, auth=alice.token)
     assert status_code == 200
 
 

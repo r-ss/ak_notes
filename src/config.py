@@ -28,7 +28,6 @@ class AppConfig(BaseSettings):
     DBHOST: str = None
 
     # TESTS
-    # TODO - move test users credentials into a secrets, for now they presented here for simplicity
     TESTING_MODE: bool = False  # Must be set to True only in autotests
     TESTING_ASSETS_PATH: str = '%s/testing_assets/' % os.path.split(BASE_DIR)[0]
     # Define passwords for 2 regular users and 1 admin to check permissions in tests
@@ -43,7 +42,10 @@ class AppConfig(BaseSettings):
     DATETIME_FORMAT_HUMAN: str = '%d.%m.%Y %H:%M'
 
     # PATHS
-    STORAGE: dict = {'ROOT': STORAGEROOT, 'UPLOADS': '%s/uploads/' % os.path.split(BASE_DIR)[0]}
+    STORAGE: dict = {
+        'ROOT': STORAGEROOT,
+        'UPLOADS': '%s/uploads/' % STORAGEROOT
+    }
 
     # AUTHENTICATION
     AUTH_USERNAME_REGEX: dict = {
@@ -65,7 +67,6 @@ class AppConfig(BaseSettings):
 
     class Config:
         """ Loads the dotenv file."""
-
         env_file: str = '.env'
 
 

@@ -5,7 +5,7 @@ from fastapi import status, HTTPException
 
 from pydantic import UUID4
 
-from models.note import Note, NoteBM, NoteEditBM, NotesBM
+from models.note import Note, NoteBM, NoteCreateBM, NotePatchBM, NotesBM
 from models.category import Category
 from models.user import User, UserTokenBM
 
@@ -17,7 +17,7 @@ from mongoengine.queryset.visitor import Q as mongo_Q
 class NotesService:
 
     """ CREATE SERVICE """
-    def create(note: NoteBM, token: UserTokenBM, category_uuid=None) -> NoteBM:
+    def create(note: NoteCreateBM, token: UserTokenBM, category_uuid:UUID4=None) -> NoteBM:
         """ Create Note """
 
         db_user = User.objects.get(uuid=token.uuid)
@@ -82,6 +82,20 @@ class NotesService:
 
         return NotesBM.from_orm(notes_collector)
 
+
+    def read_all_in_category(token: UserTokenBM, category_uuid=UUID4) -> NotesBM:
+        """ Get all notes in specific category """
+
+        db_user = User.objects.get(uuid=token.uuid)
+        if category_uuid not in db_user.categories:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not allowed")
+
+        db_category = Category.objects.get(uuid=category_uuid)
+        
+        db_notes = Note.objects(uuid__in=db_category.notes)
+
+        return NotesBM.from_orm(list(db_notes))
+
     # def read_all_with_tag(tag: str, token: UserTokenBM) -> NotesBM:
     #     """ Get all notes by current user that contains specific tag """
 
@@ -90,7 +104,7 @@ class NotesService:
     #     return NotesBM.from_orm(list(db_notes))
 
     """ UPDATE SERVICE """
-    def update(input_note: NoteEditBM, token: UserTokenBM) -> NoteBM:
+    def update(input_note: NoteBM, token: UserTokenBM) -> NoteBM:
         """ Edit note """
 
         try:
@@ -108,16 +122,41 @@ class NotesService:
         if input_note.body:
             db_note.body = input_note.body
             untouched = False
-        # if input_note.tags:
-        #     db_note.tags = input_note.tags
-        #     untouched = False
 
         if not untouched:
             db_note.modified = datetime.utcnow()
             db_note.save()
             return NoteBM.from_orm(db_note)
 
-        return None
+
+    """ PATCH SERVICE """
+    def patch(note_uuid: UUID4, input_note: NotePatchBM, token: UserTokenBM) -> NoteBM:
+        """ Edit note """
+
+        if input_note.uuid and input_note.uuid != note_uuid:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Notes UUIDs confusion')
+
+        try:
+            db_note = Note.objects.get(uuid=note_uuid)
+        except Note.DoesNotExist:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Note does not found')
+
+        owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
+
+        untouched = True
+
+        if input_note.title:
+            db_note.title = input_note.title
+            untouched = False
+        if input_note.body:
+            db_note.body = input_note.body
+            untouched = False
+
+        if not untouched:
+            db_note.modified = datetime.utcnow()
+            db_note.save()
+            return NoteBM.from_orm(db_note)
+
 
     # def update_note_category(note_uuid: str, new_category: CategoryBM, token: UserTokenBM) -> NoteBM:
     #     """ Change note category """
@@ -135,7 +174,7 @@ class NotesService:
     #     return NoteBM.from_orm(db_note)
 
     """ DELETE SERVICE """
-    def delete(uuid: str, token: UserTokenBM) -> None:
+    def delete(uuid: UUID4, token: UserTokenBM) -> None:
 
         try:
             db_note = Note.objects.get(uuid=uuid)

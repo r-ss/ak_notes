@@ -51,7 +51,7 @@ class UsersService:
         return UserBM.from_orm(db_user)
 
     """ UPDATE SERVICE """
-    def update(user: UserBM, token: UserTokenBM) -> UserBM:
+    def edit_username(user: UserBM, token: UserTokenBM) -> UserBM:
         """ Change username of specific user in database and returu User with updated data """
 
         db_user = User.objects.get(uuid=user.uuid)

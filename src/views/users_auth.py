@@ -16,7 +16,7 @@ router = InferringRouter(tags=['Authentication'])
 class AuthCBV:
 
     """ LOGIN """
-    @router.post('/token', status_code=status.HTTP_202_ACCEPTED)
+    @router.post('/token', status_code=status.HTTP_202_ACCEPTED, summary='Login user and get access/refresh tokens')
     def login(self, form_data: OAuth2PasswordRequestForm = Depends()):
 
         def bad_req(msg: str):
@@ -42,7 +42,7 @@ class AuthCBV:
         }
 
     """ REFRESH TOKEN """
-    @router.post('/refresh-token', status_code=status.HTTP_202_ACCEPTED)
+    @router.patch('/token', status_code=status.HTTP_202_ACCEPTED, summary='Refresh token')
     def refresh_token(self, refresh_token: str):
 
         new_access_token, new_refresh_token = Auth.check_refresh_token(refresh_token)

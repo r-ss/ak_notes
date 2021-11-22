@@ -41,7 +41,7 @@ class File(mongoengine.Document):
 
     @property
     def path(self) -> str:
-        return '%s%s' % (config.STORAGE['ROOT'], self.filename_uuid)
+        return '%s%s' % (config.STORAGE['UPLOADS'], self.filename_uuid)
 
     @property
     def is_file_exist(self) -> bool:

@@ -1,4 +1,4 @@
-from tests.testutils import post, get, put, delete, postForm
+from tests.testutils import post, get, put, patch, delete, postForm
 
 # from config import config
 
@@ -60,14 +60,14 @@ def test_user_login(client):
 
 def test_user_update_by_owner(client):
     data = {'uuid': user_uuid_save, 'username': user_username_save + '_upd'}
-    status_code, result = put(client, f'/users/{user_uuid_save}', data, auth=user_token_save)
+    status_code, result = patch(client, f'/users/{user_uuid_save}', data, auth=user_token_save)
     assert result['username'] == user_username_save + '_upd'
     assert status_code == 200
 
 
 def test_user_update_by_alice(client, alice):
     data = {'uuid': user_uuid_save, 'username': user_username_save + '_upd'}
-    status_code, result = put(client, f'/users/{user_uuid_save}', data, auth=alice.token)
+    status_code, result = patch(client, f'/users/{user_uuid_save}', data, auth=alice.token)
     assert result['detail'] == 'Seems like you are not authorized to this'
     assert status_code == 401
 

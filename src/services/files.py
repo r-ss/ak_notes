@@ -28,7 +28,7 @@ class FilesService:
         """
 
         # db_user = User.objects.get(uuid=token.uuid)
-        fs.check_dir(config.STORAGE['ROOT'])  # create storage dir on filesystem if not exist
+        fs.check_dir(config.STORAGE['UPLOADS'])  # create storage dir on filesystem if not exist
 
         try:
             db_note = Note.objects.get(uuid=note_uuid)
@@ -42,7 +42,7 @@ class FilesService:
             db_file = File(filename=upload.filename)
             db_file.save()
 
-            file_location = '%s%s' % (config.STORAGE['ROOT'], db_file.filename_uuid)
+            file_location = '%s%s' % (config.STORAGE['UPLOADS'], db_file.filename_uuid)
             f = open(file_location, 'wb')
             f.write(upload.file.read())
             f.close()

@@ -33,18 +33,18 @@ class UsersCBV:
         return UsersService.create(user)
 
     """ READ """
-    @router.get('/users', status_code=status.HTTP_200_OK, response_model=UsersBM)
+    @router.get('/users', status_code=status.HTTP_200_OK, response_model=UsersBM, summary='Read all users')
     def read_all(self):
         return UsersService.read_all()
 
-    @router.get('/users/{uuid}', status_code=status.HTTP_200_OK, response_model=UserBM)
+    @router.get('/users/{uuid}', status_code=status.HTTP_200_OK, response_model=UserBM, summary='Read specific user')
     def read_specific(self, uuid: UUID4):
         return UsersService.read_specific(uuid)
 
-    """ UPDATE """
-    @router.put('/users/{uuid}', status_code=status.HTTP_200_OK, response_model=UserBM)
+    """ PATCH """
+    @router.patch('/users/{uuid}', status_code=status.HTTP_200_OK, response_model=UserBM)
     def update_user(self, user: UserBM, token: UserTokenBM = Depends(token_required)):
-        return UsersService.update(user, token)
+        return UsersService.edit_username(user, token)
 
     """ DELETE """
     @router.delete('/users/{uuid}', status_code=status.HTTP_204_NO_CONTENT)

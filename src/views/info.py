@@ -16,7 +16,7 @@ router = InferringRouter(tags=['General'])
 class InfoCBV:
 
     """ READ """
-    @router.get('/info')
+    @router.get('/info', summary='Basic system information')
     def read(self):
         """ Return basic system information and variables, like is app runs
             in production mode or not. Might be useful on deployment.

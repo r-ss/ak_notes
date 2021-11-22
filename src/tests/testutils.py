@@ -14,6 +14,9 @@ def dispatcher(client, method='get', url='/empty', data=None, headers=None, auth
         case 'put':
             data = json.dumps(data)
             response = client.put(url, data=data, headers=headers)
+        case 'patch':
+            data = json.dumps(data)
+            response = client.patch(url, data=data, headers=headers)
         case 'delete':
             data = json.dumps(data)
             response = client.delete(url, headers=headers)
@@ -53,6 +56,8 @@ def post(client, url, data, headers=None, auth=None):
 def put(client, url, data, headers=None, auth=None):
     return dispatcher(client, 'put', url, data, headers, auth)
 
+def patch(client, url, data, headers=None, auth=None):
+    return dispatcher(client, 'patch', url, data, headers, auth)
 
 def delete(client, url, headers=None, auth=None):
     return dispatcher(client, 'delete', url, None, headers, auth)

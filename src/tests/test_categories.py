@@ -1,4 +1,4 @@
-from tests.testutils import post, get, put, delete
+from tests.testutils import post, get, patch, delete
 
 # from config import config
 
@@ -45,7 +45,7 @@ def test_category_update(client, alice):
         'name': category_name_save + '_upd',
         'uuid': category_uuid_save
     }
-    status_code, result = put(client, f'/categories/{category_uuid_save}', data, auth=alice.token)
+    status_code, result = patch(client, f'/categories/{category_uuid_save}', data, auth=alice.token)
     assert result['uuid'] == category_uuid_save
     assert result['name'] == category_name_save + '_upd'
     assert status_code == 200

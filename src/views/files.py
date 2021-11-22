@@ -23,28 +23,28 @@ router = InferringRouter(tags=['Files'])
 class FilesCBV:
 
     """ CREATE """
-    @router.post('/notes/{note_uuid}/files', status_code=status.HTTP_201_CREATED)
+    @router.post('/notes/{note_uuid}/files', status_code=status.HTTP_201_CREATED, summary='Upload file(s) for specific note')
     def create(self, note_uuid: UUID4, uploads: List[UploadFile] = FastAPIFile(...), token: UserTokenBM = Depends(token_required)):
         return FilesService.create(note_uuid, uploads, token)
 
     """ READ """
-    @router.get('/files/{uuid}')
+    @router.get('/files/{uuid}', summary='Read file')
     def read(self, uuid: UUID4, token: UserTokenBM = Depends(token_required)):
         """ Read single specific file """
         return FilesService.read_specific(uuid, token)
 
-    @router.get('/notes/{note_uuid}/files')
+    @router.get('/notes/{note_uuid}/files', summary='Read all files for specific note')
     def read_all_for_note(self, note_uuid: UUID4, token: UserTokenBM = Depends(token_required)):
         """ Read all files attached to specific note """
         return FilesService.read_all_for_note(note_uuid, token)
 
-    @router.get('/users/{user_uuid}/files')
+    @router.get('/users/{user_uuid}/files', summary='Read all files for current user')
     def read_all_for_user(self, token: UserTokenBM = Depends(token_required)):
         """ Read all files owned by current user """
         return FilesService.read_all_for_user(token)
 
     """ UPDATE """
-    @router.put('/files/{uuid}', status_code=status.HTTP_200_OK, response_model=FileBM)
+    @router.patch('/files/{uuid}', status_code=status.HTTP_200_OK, response_model=FileBM, summary='Rename file')
     def update_file(self, file: FileEditBM, token: UserTokenBM = Depends(token_required)):
         """ Method to edit file, now only filename can be changed """
         return FilesService.update(file, token)
