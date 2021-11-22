@@ -12,13 +12,16 @@ from views.users_auth import router as users_auth_router
 from views.users_crud import router as users_crud_router
 from views.notes import router as notes_router
 
+from views.dao_for_tests import router as dao_router
+
 routers = [
     info_router,
     categories_router,
     files_router,
     users_auth_router,
     users_crud_router,
-    notes_router
+    notes_router,
+    dao_router
 ]
 
 
