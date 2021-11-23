@@ -78,6 +78,7 @@ def test_note_filter(client, alice):
 
 def test_note_pagination(client, alice):
     status_code, result = get(client, '/notes?filter=huy&limit=1&offset=1', auth=alice.token)
+    print(result)
     assert status_code in [200, 400]
 
 # def test_notes_list_by_tag(client, alice):

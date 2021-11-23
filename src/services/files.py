@@ -37,7 +37,6 @@ class FilesService:
             Returns list of oploaded files.
         """
 
-        # db_user = User.objects.get(uuid=token.uuid)
         fs.check_dir(config.STORAGE['UPLOADS'])  # create storage dir on filesystem if not exist
 
         note, owner = NoteDAO.get_note_owner(uuid=note_uuid)
@@ -46,17 +45,15 @@ class FilesService:
         def collect_and_write_metadata(path: str, file: FileBM) -> None:
             # mime
             kind = filetype.guess(path)
-
             if kind is not None:
                 file.mime = kind.mime  # filetype lib also have "kind.extension" property
 
             # filesize
             file.filesize = int(os.path.getsize(path))
+
             # hash
             file.hash = fs.file_hash(path, config.HASH_DIGEST_SIZE)
-
             del kind
-
             return FileDAO.update_object(uuid=file.uuid, object=file)
 
         processed_files_collector = []
@@ -137,7 +134,6 @@ class FilesService:
         file, owner = FileDAO.get_file_owner(uuid=uuid)
         check_ownership(owner.uuid, token)
 
-        # file_uuid = file.uuid
         note = FileDAO.get_parent_note(uuid=file.uuid)
 
         # update info about file in note

@@ -27,14 +27,12 @@ def dispatcher(client, method='get', url='/empty', data=None, headers=None, auth
             files = data
             if isinstance(files, str):
                 stream = open(files, 'rb')
-                # TODO - proper mime type check
                 files_data = {'uploads': (os.path.basename(files), stream, 'image/png')}
 
             elif isinstance(files, list):
                 files_data = []
                 for path in files:
                     stream = open(path, 'rb')
-                    # TODO - proper mime type check
                     item = ('uploads', (os.path.basename(path), stream, 'image/png'))
                     files_data.append(item)
 

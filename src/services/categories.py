@@ -69,11 +69,9 @@ class CategoriesService:
     def update(input_category: CategoryBM, token: UserTokenBM) -> CategoryBM:
         """ Method to change category name """
 
-        # db_user = CategoriesService.get_user_helper(token)
         category = CategoryDAO.get(uuid=input_category.uuid)
 
         # TODO - check_ownership(db_category.owner.uuid, token)
-
         return CategoryDAO.update_fields(uuid=category.uuid, fields={'name': input_category.name})
 
     """ DELETE SERVICE """
@@ -83,12 +81,8 @@ class CategoriesService:
         user = CategoriesService.get_user_helper(token, already_authenticated_user)
 
         # TODO - check_ownership(db_category.owner.uuid, token)
-
         category = CategoryDAO.get(uuid=uuid)
         CategoryDAO.delete(uuid=uuid)
 
-        # print(user.categories)
-
         user.categories.remove(category.uuid)
-        # print(user.categories)
         UserDAO.update_fields(uuid=user.uuid, fields={'categories': user.categories})

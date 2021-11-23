@@ -27,18 +27,12 @@ class NotesService:
         # Assing just created Note under specific or default category
         if category_uuid:
             category = CategoryDAO.get(uuid=category_uuid)
-            # check_ownership(category.owner.uuid, token)
+            # TODO - check_ownership(category.owner.uuid, token)
         else:
             category = CategoryDAO.get_last_for_user(user)
 
-        # print(type(category))
-        # print(category)
-
         category.notes.append(note_created.uuid)
-
-        # print('category.notes', category.notes)
         CategoryDAO.update_fields(uuid=category.uuid, fields={'notes': category.notes})
-
         return note_created
 
     """ READ SERVICE """
@@ -61,15 +55,10 @@ class NotesService:
             if filter:
                 notes = NoteDAO.search_notes(cat.notes, filter)
 
-            # TODO limit and offset
-            # if limit and offset:
-            #     if (limit + offset) > db_notes.count():
-            #         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="We don't have so much Notes")
-            #     db_notes = db_notes[offset: limit + offset]
-
             for n in notes:
                 notes_collector.append(n)
 
+        # Pagination
         if offset:
             if (limit + offset) > len(notes_collector):
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="We don't have so much Notes")

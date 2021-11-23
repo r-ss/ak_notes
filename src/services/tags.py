@@ -25,7 +25,6 @@ class TagsService:
     def create(note_uuid: UUID4, tag: TagBM, token: UserTokenBM) -> TagBM:
         """ Create tag and return it """
 
-        # user = UserDAO.get(uuid=token.uuid)
         note, owner = NoteDAO.get_note_owner(uuid=note_uuid)
         check_ownership(owner.uuid, token)
 
@@ -37,7 +36,6 @@ class TagsService:
     """ READ SERVICE """
     def read_specific(uuid: UUID4, token: UserTokenBM) -> TagBM:
         """ Get specific tag item """
-        # TODO - check_ownership(db_tag.owner.uuid, token)
         return TagDAO.get(uuid=uuid)
 
     def read_all(token: UserTokenBM) -> TagsBM:
@@ -70,8 +68,6 @@ class TagsService:
     def update(input_tag: TagBM, token: UserTokenBM) -> TagBM:
         """ Method to change tag name """
 
-        # user = UserDAO.get(uuid=token.uuid)
-
         # Get all user tags to check ownership
         # TODO - consider refactor
         usertags = TagsService.read_all_for_user(token.uuid, token)
@@ -84,14 +80,11 @@ class TagsService:
         if not found:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized. Tag not found for user")
 
-        # tag = TagDAO.get(uuid=input_tag.uuid)
         return TagDAO.update_fields(uuid=tag.uuid, fields={'name': input_tag.name, 'color': str(input_tag.color)})
 
     """ DELETE SERVICE """
     def delete(uuid: UUID4, token: UserTokenBM) -> None:
         """ Delete Category from database """
-
-        # user = UserDAO.get(uuid=token.uuid)
 
         # Get all user tags to check ownership
         # TODO - consider refactor
@@ -106,9 +99,3 @@ class TagsService:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized. Tag not found for user")
 
         TagDAO.delete(uuid=uuid)
-
-        # print(user.categories)
-
-        # user.categories.remove(tag.uuid)
-        # print(user.categories)
-        # UserDAO.update_fields(uuid=user.uuid, fields={'categories': user.categories})
