@@ -8,6 +8,9 @@ tags_count = None
 created_tag = None
 
 
+
+
+
 def test_tags_count(client, alice):
     global tags_count  # TODO - is it possible to save variable for another test cases without "global" keyword?
     status_code, result = get(client, '/tags', auth=alice.token)
@@ -55,6 +58,10 @@ def test_tag_update(client, alice):
     assert result['color'] == 'red'
     assert status_code == 200
 
+# def test_get_notes_by_tag(client, alice):
+#     status_code, result = get(client, f'/tags/{created_tag["uuid"]}/notes', auth=alice.token)
+#     print(result)
+#     assert status_code == 200
 
 def test_tags_delete_by_bob(client, bob):
     global created_tag

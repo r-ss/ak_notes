@@ -79,12 +79,20 @@ class NotesService:
 
         return notes
 
-    # def read_all_with_tag(tag: str, token: UserTokenBM) -> NotesBM:
-    #     """ Get all notes by current user that contains specific tag """
+    def read_all_with_tag(tag_uuid: UUID4, token: UserTokenBM) -> NotesBM:
+        """ Get all notes by current user that contains specific tag """
 
-    #     db_user = User.objects.get(uuid=token.uuid)
-    #     db_notes = Note.objects.filter(owner=db_user, tags__in=[tag])
-    #     return NotesBM.from_orm(list(db_notes))
+        user = UserDAO.get(uuid=token.uuid)
+        categories = CategoryDAO.get_all_where(uuid__in=user.categories)
+
+        notes_collector = []
+        for category in categories:
+            notes = NoteDAO.get_all_where(uuid__in=category.notes)
+            for note in notes:
+                if tag_uuid in note.tags:
+                    notes_collector.append(note)
+
+        return NotesBM.parse_obj(notes_collector)
 
     """ UPDATE SERVICE """
     def update(input_note: NoteBM, token: UserTokenBM) -> NoteBM:

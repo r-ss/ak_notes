@@ -7,6 +7,18 @@ Free tier of MongoDB Atlas used here
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/53f9891d099578172022/maintainability)](https://codeclimate.com/github/r-ss/ak_notes/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/53f9891d099578172022/test_coverage)](https://codeclimate.com/github/r-ss/ak_notes/test_coverage)
 
+> ###16 ноября — 23 ноября:
+> 
+> - DAO. Все манипуляции с БД через отдельный стой абстракции.
+> - Теги: CRUD, выбор заметок по тегу и т.д.
+> - Избавился от некрасивого распарсинга json, теперь используются методы Pydantic from_orm для парсинга объектов из бд.
+> - Структура URI-адресов приведена в более близкий к философии REST вид.
+> - Модель Dataflow изменена на User -> Category -> Note -> File. В наследниках отсутствуют поля owner, в родителях записываются наследники в виде массива.
+> - Фильтрация заметок по полям, GET /notes?filter=pizda
+> - Пагинация. GET /notes?filter=huy&limit=10&offset=15
+> - Добавлены refresh-токены
+> - Добавил теги для странички /docs, описания вьюшек
+> - Добавлены методы PATCH для обновления записей по частично переданной модели данных. Для обновления по полной модели используется PUT (например для заметок доступны PUT и PATCH, последний будет работать если для обновления передан, скажем, только заголовок заметки)
 
 ## Explore API
 

@@ -45,10 +45,10 @@ class NotesCBV:
     def read_all_notes_in_category(self, category_uuid: UUID4, token: UserTokenBM = Depends(token_required)):
         return NotesService.read_all_in_category(token, category_uuid)
 
-    # @router.get('/notes/with-tag/{tag}')
-    # def read_with_tag(self, tag: str, token: UserTokenBM = Depends(token_required)):
-    #     """ Read all notes by current user that contains specific tag """
-    #     return NotesService.read_all_with_tag(tag, token)
+    @router.get('/tags/{tag_uuid}/notes')
+    def read_all_with_tag(self, tag_uuid: UUID4, token: UserTokenBM = Depends(token_required)):
+        """ Read all notes by current user that contains specific tag """
+        return NotesService.read_all_with_tag(tag_uuid, token)
 
     """ UPDATE """
     @router.put('/notes', status_code=status.HTTP_200_OK, summary='Update note')
