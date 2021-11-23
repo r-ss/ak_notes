@@ -68,13 +68,13 @@ def test_user_update_by_owner(client):
 def test_user_update_by_alice(client, alice):
     data = {'uuid': user_uuid_save, 'username': user_username_save + '_upd'}
     status_code, result = patch(client, f'/users/{user_uuid_save}', data, auth=alice.token)
-    assert result['detail'] == 'Seems like you are not authorized to this'
+    assert result['detail'] == 'Not allowed'
     assert status_code == 401
 
 
 def test_user_delete_by_alice(client, alice):
     status_code, result = delete(client, f'/users/{user_uuid_save}', auth=alice.token)
-    assert result['detail'] == 'Seems like you are not authorized to this'
+    assert result['detail'] == 'Not allowed'
     assert status_code == 401
 
 

@@ -28,12 +28,12 @@ class NotesService:
     def create(note_input: NoteCreateBM, token: UserTokenBM, category_uuid:UUID4=None) -> NoteBM:
         """ Create Note """
 
-        user = UserDAO.get(uuid=token.uuid)
+        user = UserDAO.get(token.uuid)
         note_created = NoteDAO.create(note_input)
 
         # Assing just created Note under specific or default category
         if category_uuid:
-            category = CategoryDAO.get(uuid=category_uuid)
+            category = CategoryDAO.get(category_uuid)
             # owner_or_admin_can_proceed_only(category.owner.uuid, token)
         else:
             category = CategoryDAO.get_last_for_user(user)
@@ -51,7 +51,7 @@ class NotesService:
     """ READ SERVICE """
     def read_specific(uuid: UUID4, token: UserTokenBM) -> NoteBM:
         """ Get single specific note """
-        note, owner = NoteDAO.get_note_owner(uuid=uuid)
+        note, owner = NoteDAO.get_note_owner(uuid)
 
         if owner.uuid != token.uuid:
             raise HTTPException(
@@ -65,7 +65,7 @@ class NotesService:
     def read_all_by_user(token: UserTokenBM, filter=None, limit=None, offset=None) -> NotesBM:
         """ Get all notes owned by current user """
 
-        user = UserDAO.get(uuid=token.uuid)
+        user = UserDAO.get(token.uuid)
         categories = CategoryDAO.get_all_where(uuid__in=user.categories)
 
 
@@ -96,11 +96,11 @@ class NotesService:
     def read_all_in_category(token: UserTokenBM, category_uuid=UUID4) -> NotesBM:
         """ Get all notes in specific category """
 
-        user = UserDAO.get(uuid=token.uuid)
+        user = UserDAO.get(token.uuid)
         if category_uuid not in user.categories:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not allowed")
 
-        category = CategoryDAO.get(uuid=category_uuid)
+        category = CategoryDAO.get(category_uuid)
         
         notes = NoteDAO.get_all_where(uuid__in=category.notes)
 
@@ -117,7 +117,7 @@ class NotesService:
     def update(input_note: NoteBM, token: UserTokenBM) -> NoteBM:
         """ Edit note """
 
-        note, owner = NoteDAO.get_note_owner(uuid=input_note.uuid)
+        note, owner = NoteDAO.get_note_owner(input_note.uuid)
 
         if owner.uuid != token.uuid:
             raise HTTPException(
@@ -143,7 +143,7 @@ class NotesService:
         if input_note.uuid and input_note.uuid != note_uuid:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Notes UUIDs confusion')
 
-        note, owner = NoteDAO.get_note_owner(uuid=note_uuid)
+        note, owner = NoteDAO.get_note_owner(note_uuid)
 
         if owner.uuid != token.uuid:
             raise HTTPException(
@@ -180,10 +180,10 @@ class NotesService:
     """ DELETE SERVICE """
     def delete(uuid: UUID4, token: UserTokenBM) -> None:
 
-        user = UserDAO.get(uuid=token.uuid)
+        user = UserDAO.get(token.uuid)
         categories = CategoryDAO.get_all_where(uuid__in=user.categories)
 
-        note, owner = NoteDAO.get_note_owner(uuid=uuid)
+        note, owner = NoteDAO.get_note_owner(uuid)
 
         # print(note)
         if owner.uuid != token.uuid:

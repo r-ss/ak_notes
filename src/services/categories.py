@@ -1,8 +1,14 @@
 from fastapi import status, HTTPException
 from pydantic import UUID4
 
-from models.category import Category, CategoryBM, CategoriesBM
-from models.user import User, UserTokenBM
+from models.category import CategoryBM, CategoriesBM
+from models.user import UserBM, UserTokenBM
+
+from dao.dao_user import UserDAOLayer
+from dao.dao_category import CategoryDAOLayer
+
+UserDAO = UserDAOLayer()
+CategoryDAO = CategoryDAOLayer()
 
 # from services.users.auth import owner_or_admin_can_proceed_only
 # from config import config
@@ -10,85 +16,80 @@ from models.user import User, UserTokenBM
 
 class CategoriesService:
 
-    def get_user_helper(token: UserTokenBM, already_authenticated_user=None) -> User:
+    def get_user_helper(token: UserTokenBM, already_authenticated_user=None) -> UserBM:
         """ To reduce code repeat """
-        db_user = already_authenticated_user
         if not already_authenticated_user:
-            try:
-                db_user = User.objects.get(uuid=token.uuid)
-            except User.DoesNotExist:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User does not found')
-        return db_user
+            return UserDAO.get(token.uuid)
+        return already_authenticated_user
+
 
     """ CREATE SERVICE """
     def create(name: str, token: UserTokenBM) -> CategoryBM:
         """ Create category item and return it """
 
-        db_user = CategoriesService.get_user_helper(token)
+        user = UserDAO.get(token.uuid)
 
-        c = Category(name=name).save()
+        category = CategoryDAO.create(
+            CategoryBM.parse_obj({'name': name})
+        )
 
-        db_user.categories.append(c.uuid)
-        db_user.save()
 
-        return CategoryBM.from_orm(c)
+        user.categories.append(category.uuid)
+        UserDAO.update_fields(user.uuid, fields_dict={'categories': user.categories})
+        return category
 
-    def create_default(db_user: User) -> None:
+    def create_default(user: UserBM) -> None:
         """ Create default category for just registered user """
-        c = Category(name=f'Default for {db_user.username}').save()
-        db_user.categories.append(str(c.uuid))
-        db_user.save()
+
+        category = CategoryDAO.create(
+            CategoryBM.parse_obj({'name': f'Default for {user.username}'})
+        )
+
+        user.categories.append(category.uuid)
+        UserDAO.update_fields(user.uuid, fields_dict={'categories': user.categories})
+        return category
 
     """ READ SERVICE """
     def read_specific(uuid: UUID4, token: UserTokenBM) -> CategoryBM:
         """ Get specific category item """
-
-        # db_user = CategoriesService.get_user_helper(token)
-
-        try:
-            db_category = Category.objects.get(uuid=uuid)
-        except Category.DoesNotExist:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Category does not found')
-
         # TODO - owner_or_admin_can_proceed_only(db_category.owner.uuid, token)
-
-        return CategoryBM.from_orm(db_category)
+        return CategoryDAO.get(uuid)
 
     def read_all(token: UserTokenBM) -> CategoriesBM:
         """ Get all category items by current user """
 
-        db_user = CategoriesService.get_user_helper(token)
-        categories = db_user.categories
+        user = CategoriesService.get_user_helper(token)
+        categories = user.categories
 
-        return CategoriesBM.from_orm(list(Category.objects(uuid__in=categories)))
+        return CategoryDAO.get_all_where(uuid__in=categories)
 
     def get_last_one(token: UserTokenBM) -> CategoryBM:
-        db_user = CategoriesService.get_user_helper(token)
+        user = CategoriesService.get_user_helper(token)
         # db_category = Category.objects.get(uuid=db_user.categories[-1])
-        return CategoryBM.from_orm(Category.get_last_for_user(db_user))
+        return CategoryDAO.get_last_for_user(user)
 
     """ UPDATE SERVICE """
-    def update(category: CategoryBM, token: UserTokenBM) -> CategoryBM:
+    def update(input_category: CategoryBM, token: UserTokenBM) -> CategoryBM:
         """ Method to change category name """
 
         # db_user = CategoriesService.get_user_helper(token)
-        db_category = Category.objects.get(uuid=category.uuid)
+        category = CategoryDAO.get(input_category.uuid)
 
         # TODO - owner_or_admin_can_proceed_only(db_category.owner.uuid, token)
 
-        db_category.name = category.name
-        return CategoryBM.from_orm(db_category.save())
+        # category.name = input_category.name
+        return CategoryDAO.update_fields(category.uuid, fields_dict={'name': input_category.name})
 
     """ DELETE SERVICE """
     def delete(uuid: UUID4, token: UserTokenBM, already_authenticated_user=None) -> None:
         """ Delete Category from database """
 
-        db_user = CategoriesService.get_user_helper(token, already_authenticated_user)
+        user = CategoriesService.get_user_helper(token, already_authenticated_user)
 
         # TODO - owner_or_admin_can_proceed_only(db_category.owner.uuid, token)
 
-        db_category = Category.objects.get(uuid=uuid)
-        db_category.delete()
+        category = CategoryDAO.get(uuid)
+        CategoryDAO.delete(uuid)
 
-        db_user.categories.remove(db_category.uuid)
-        db_user.save()
+        user.categories.remove(category.uuid)
+        UserDAO.update_fields(user.uuid, fields_dict={'categories': user.categories})

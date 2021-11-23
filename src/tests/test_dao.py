@@ -20,7 +20,7 @@ def test_dao_post(client):
     assert status_code == 201
 
 def test_dao_get_one(client):
-    status_code, result = get(client, f'/dao/one/{note_uuid_save}')
+    status_code, result = get(client, f'/dao/one/{config.TESTNOTE_BY_ALICE_UUID}')
     print(result)
     assert status_code == 200
 

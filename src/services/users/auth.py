@@ -7,11 +7,14 @@ from fastapi.security import OAuth2PasswordBearer
 
 from pydantic import UUID4
 
-from models.user import User, UserBM, UserTokenBM
+from dao.dao_user import UserDAOLayer
+from models.user import UserBM, UserTokenBM
 from config import config
 
 from services.resslogger import RessLogger
 log = RessLogger()
+
+UserDAO = UserDAOLayer()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
@@ -58,28 +61,28 @@ class Auth:
         salt = bcrypt.gensalt()
         return bcrypt.hashpw(pwd, salt).decode('utf-8')
 
-    def encode_access_token(db_user):
+    def encode_access_token(user: UserBM):
 
         payload = {
             'exp': datetime.datetime.utcnow() + config.AUTH_ACCESS_TOKEN_EXPIRATION_TIME,  # set access token time limit
             'iat': datetime.datetime.utcnow(),  # issued at
             'scope': 'access_token',
-            'username': db_user.username,
-            'uuid': str(db_user.uuid),
-            'is_superadmin': db_user.is_superadmin
+            'username': user.username,
+            'uuid': str(user.uuid),
+            'is_superadmin': user.is_superadmin
         }
 
         return jwt.encode(payload, config.SECRET_KEY, algorithm=config.AUTH_HASHING_ALGORITHM)  # encrypt payload into token
 
-    def encode_refresh_token(db_user):
+    def encode_refresh_token(user: UserBM):
 
         payload = {
             'exp': datetime.datetime.utcnow() + config.AUTH_REFRESH_TOKEN_EXPIRATION_TIME,  # set refresh token time limit
             'iat': datetime.datetime.utcnow(),  # issued at
             'scope': 'refresh_token',
-            'username': db_user.username,
-            'uuid': str(db_user.uuid),
-            'is_superadmin': db_user.is_superadmin
+            'username': user.username,
+            'uuid': str(user.uuid),
+            'is_superadmin': user.is_superadmin
         }
 
         return jwt.encode(payload, config.SECRET_KEY, algorithm=config.AUTH_HASHING_ALGORITHM)  # encrypt payload into token
@@ -89,13 +92,10 @@ class Auth:
             dict = jwt.decode(refresh_token, config.SECRET_KEY, algorithms=[config.AUTH_HASHING_ALGORITHM])
             if (dict['scope'] == 'refresh_token'):
 
-                try:
-                    db_user = User.objects.get(uuid=dict['uuid'])
-                except IndexError:
-                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
+                user = UserDAO.get(dict['uuid'])
 
-                new_access_token = Auth.encode_access_token(db_user)
-                new_refresh_token = Auth.encode_refresh_token(db_user)
+                new_access_token = Auth.encode_access_token(user)
+                new_refresh_token = Auth.encode_refresh_token(user)
 
                 return new_access_token, new_refresh_token
 
@@ -107,26 +107,20 @@ class Auth:
 
     def login(username: str, password: str) -> bool:
 
-        try:
-            db_user = User.objects.get(username=username)
-            """ If in future we want login not just by username but username OR email,
-                we can use something like that:
-                db_user = User.objects.filter( mongo_Q(username = username) | mongo_Q(email = username) )[0]
-            """
-        except IndexError:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
+        db_user = UserDAO.get(username, field='username', response_model=None)
 
         # If password correct login and return token to client
         if bcrypt.checkpw(password.encode('utf-8'), db_user.userhash.encode('utf-8')):
 
-            access_token = Auth.encode_access_token(db_user)
-            refresh_token = Auth.encode_refresh_token(db_user)
+            user = UserBM.from_orm(db_user)
 
-            db_user.last_login = datetime.datetime.utcnow()
-            db_user.save()
+            access_token = Auth.encode_access_token(user)
+            refresh_token = Auth.encode_refresh_token(user)
 
-            log.info(f'User { db_user.username } logged in')
+            UserDAO.update_fields(user.uuid, fields_dict={'last_login': datetime.datetime.utcnow()})
 
-            return UserBM.from_orm(db_user), access_token, refresh_token
+            log.info(f'User { user.username } logged in')
+
+            return user, access_token, refresh_token
         else:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Wrong password')

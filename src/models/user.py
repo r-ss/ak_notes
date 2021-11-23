@@ -1,7 +1,7 @@
 from datetime import datetime
 import mongoengine as mongoengine
 
-from pydantic import BaseModel, constr, UUID4
+from pydantic import BaseModel, constr, UUID4, SecretStr
 from typing import Optional, List
 
 from fastapi import Form
@@ -45,8 +45,10 @@ class UserBM(BaseModel):
         orm_mode = True
 
 
-class UserRegBM(UserBM):  # used upon user registeration
-    password: Optional[str]
+class UserRegBM(BaseModel):  # used upon user registeration
+    username: Optional[constr(max_length=36)]
+    password: Optional[SecretStr]
+    userhash: Optional[str]
 
 
 class UserTokenBM(BaseModel):  # used in token_required

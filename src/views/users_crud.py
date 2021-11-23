@@ -27,7 +27,7 @@ class UsersCBV:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Username and password must be provided for registration')
         if not Auth.is_username_valid(user.username):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=config.AUTH_USERNAME_REGEX['failmessage'])
-        if not Auth.is_password_valid(user.password):
+        if not Auth.is_password_valid(user.password.get_secret_value()):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=config.AUTH_PASSWORD_REGEX['failmessage'])
 
         return UsersService.create(user)

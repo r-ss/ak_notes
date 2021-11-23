@@ -29,11 +29,11 @@ class Category(mongoengine.Document):
     created = mongoengine.DateTimeField(default=datetime.utcnow())
     notes = mongoengine.ListField(mongoengine.UUIDField(binary=False), default=[])
 
-    def get_last_for_user(db_user: User):
-        """ Used when we create Note without passing category,
-            so Note will be created under last User's Category
-        """
-        return Category.objects.get(uuid=db_user.categories[-1])
+    # def get_last_for_user(db_user: User):
+    #     """ Used when we create Note without passing category,
+    #         so Note will be created under last User's Category
+    #     """
+    #     return Category.objects.get(uuid=db_user.categories[-1])
 
     @property
     def parent(self) -> User:

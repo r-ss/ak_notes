@@ -21,11 +21,10 @@ class NoteDAOLayer(BasicDAOLayer):
 
     def get_note_owner(self, uuid: UUID4):
         """ return NoteBM with it's owner, UserBM """
-        
+
         db_note = super().get(uuid, response_model=None)
         db_owner = db_note.owner
         return NoteBM.from_orm(db_note), UserBM.from_orm(db_owner)
-
 
     def create(self, note: NoteBM):
         return super().create(note, response_model=NoteBM)

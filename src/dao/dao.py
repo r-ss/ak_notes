@@ -13,22 +13,38 @@ class BasicDAOLayer:
         self.target = None
         self.readable = '--EMPTY--'
 
-    def get(self, key=None, field='uuid', response_model=None):
-        """ Get one object
-            where field=key
-            If response_model if defined, parse object to it and return
-            Otherwise return as is
+    def get(self, key=None, field='uuid', response_model=None, **kwargs):
+        """ Get one object from DB
+            Parse it to response_model if provided and return
+
+            Quering possible in two ways:
+            1. By field, UUID by default:
+               SomeDAO.get(id)                          - will get user where uuid=id
+               SomeDAO.get('Alice', field='username')   - will get user where username='Alice'
+
+            2. By kwarg:
+               SomeDAO.get(uuid=id)                     - will get user where uuid=id
+               SomeDAO.get(username='Alice')            - will get user where username='Alice'
+
         """
 
+        value = key
+        if len(kwargs):
+            field = str(list(kwargs.keys())[0])
+            value = list(kwargs.values())[0]
+        
+        if type(value) != int:
+            value = str(value)
+
         try:
-            key = str(key)
-            db_obj = self.target.objects.get(__raw__={field:key})
+            db_obj = self.target.objects.get(__raw__={field:value})
         except self.target.DoesNotExist:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='%s object not found in DB' % self.readable)
 
         if response_model:
             return response_model.from_orm(db_obj)
         return db_obj
+
 
     def get_all(self, response_model=None):
         """ Get all objects """
@@ -43,9 +59,16 @@ class BasicDAOLayer:
         """ Create object of type self.target. Save all fields passed in "data" into new object """
 
         db_obj = self.target()
+        
+        if type(data) == dict:
+            collection = data
+        else:
+            collection = data.dict()
 
-        for k, v in data.dict().items():
+        for k, v in collection.items():
             if v:
+                if type(v) != int:
+                    v = str(v)
                 db_obj[k] = v
         db_obj.save()
 

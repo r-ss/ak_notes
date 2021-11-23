@@ -2,7 +2,10 @@ from fastapi import status, HTTPException
 
 import mongoengine as mongoengine  # to catch mongoengine.errors.NotUniqueError on duplicate user registration
 
-from models.user import User, UserBM, UsersBM, UserTokenBM, UserRegBM, UserTokenBM
+
+from models.user import UserBM, UsersBM, UserTokenBM, UserRegBM, UserTokenBM
+
+from dao.dao_user import UserDAOLayer
 
 # from config import config
 
@@ -14,6 +17,7 @@ from services.categories import CategoriesService
 from services.resslogger import RessLogger
 
 log = RessLogger()
+UserDAO = UserDAOLayer()
 
 
 class UsersService:
@@ -22,54 +26,48 @@ class UsersService:
     def create(user: UserRegBM) -> UserBM:
         """ Create user in database and return it """
 
-        db_user = User(username=user.username, userhash=Auth.hash_password(user.password))
+        user.userhash = Auth.hash_password(user.password.get_secret_value())
 
-        try:
-            db_user.save()
-        except mongoengine.errors.NotUniqueError:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='That user already exist')
+        user = UserDAO.create(user)
 
-        log.info(f'User "{ db_user.username }" has been registered')
+        log.info(f'User "{ user.username }" has been registered')
         # create default Category for new User
-        CategoriesService.create_default(db_user)
+        CategoriesService.create_default(user)
 
-        return UserBM.from_orm(db_user)
+        return user
 
     """ READ SERVICE """
     def read_all() -> UsersBM:
         """ Get all users from database and return them """
-        return UsersBM.from_orm(list(User.objects.all()))
+        return UserDAO.get_all()
 
     def read_specific(uuid: UUID4) -> UserBM:
         """ Get specific user from database and return """
-
-        try:
-            db_user = User.objects.get(uuid=uuid)
-        except User.DoesNotExist:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User does not found')
-
-        return UserBM.from_orm(db_user)
+        return UserDAO.get(uuid)
 
     """ UPDATE SERVICE """
-    def edit_username(user: UserBM, token: UserTokenBM) -> UserBM:
+    def edit_username(input_user: UserBM, token: UserTokenBM) -> UserBM:
         """ Change username of specific user in database and returu User with updated data """
 
-        db_user = User.objects.get(uuid=user.uuid)
+        user = UserDAO.get(input_user.uuid)
 
-        owner_or_admin_can_proceed_only(db_user.uuid, token)
+        if user.uuid != token.uuid:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not allowed")
 
-        db_user.username = user.username
-        return UserBM.from_orm(db_user.save())
+        user.username = input_user.username
+        return UserDAO.update_fields(user.uuid,fields_dict={'username': user.username})
 
     """ DELETE SERVICE """
     def delete(uuid: UUID4, token: UserTokenBM) -> None:
         """ Delete user from database """
 
-        db_user = User.objects.get(uuid=uuid)
-        owner_or_admin_can_proceed_only(uuid, token)
+        user = UserDAO.get(uuid=uuid)
+
+        if user.uuid != token.uuid:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not allowed")
 
         # Delete all users categories
-        for cat_uuid in db_user.categories:
-            CategoriesService.delete(cat_uuid, token, already_authenticated_user=db_user)
+        for cat_uuid in user.categories:
+            CategoriesService.delete(cat_uuid, token, already_authenticated_user=user)
 
-        db_user.delete()
+        UserDAO.delete(user.uuid)
