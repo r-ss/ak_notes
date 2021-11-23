@@ -26,10 +26,10 @@ class NoteDAOLayer(BasicDAOLayer):
     def create(self, note: NoteBM):
         return super().create(note, response_model=NoteBM)
 
-    def get_all_where(self, **kwargs):
-        return super().get_all_where(response_model=NotesBM, **kwargs)
+    def get_all_where(self, response_model=NotesBM, **kwargs):
+        return super().get_all_where(response_model=response_model, **kwargs)
 
     def search_notes(self, notes_list, filter):
-        db_notes = super().get_all_where(uuid__in=notes_list)
+        db_notes = super().get_all_where(uuid__in=notes_list, response_model=None)
         db_notes = db_notes.filter(mongo_Q(title__contains=filter) | mongo_Q(body__contains=filter))
         return NotesBM.from_orm(list(db_notes))

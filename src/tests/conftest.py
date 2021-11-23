@@ -1,5 +1,8 @@
 import pytest
 
+from pydantic import UUID4
+
+
 from config import config
 
 from main import testclient
@@ -20,9 +23,9 @@ class LoggedInTestUser:
     """ Represents logged-in test user, used only in tests """
 
     def __init__(self, uuid: str, token: str) -> None:
-        self.uuid: str = uuid
+        self.uuid: UUID4 = uuid
         self.token: str = token
-        self.default_category_uuid = None
+        self.default_category_uuid: UUID4 = None
 
 
 @pytest.fixture

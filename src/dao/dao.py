@@ -1,3 +1,4 @@
+from typing import Tuple, Union
 from fastapi import status, HTTPException
 # from mongoengine.queryset.visitor import Q as mongo_Q
 
@@ -13,6 +14,32 @@ class BasicDAOLayer:
         self.target = None
         self.readable = '--EMPTY--'
 
+    def parsekwargs(self, kwargs) -> Tuple[str, Union[str, int]]:
+        """ Internal utility to parse incoming kwargs to pair field: value for PyMongo request. """
+
+        if not len(kwargs):
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='kwargs not present for DB query')
+
+        if len(kwargs) != 1:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Currently only one kwarg accepted for query')
+
+        field = str(list(kwargs.keys())[0])
+        value = list(kwargs.values())[0]
+
+        #  value can be int or string, so if it's not int, force convert value to string - helps with UUID for example
+        if type(value) != int:
+            value = str(value)
+
+        return field, value
+
+    def raw_or_parsed(self, db_obj, response_model):
+        """ Internal utility to parse data from DB into designated Pydantic's model
+            If model not frovided (response_model=None), return object from DB as is
+        """
+        if response_model:
+            return response_model.from_orm(db_obj)
+        return db_obj
+
     def get(self, response_model=None, **kwargs):
         """ Get one object from DB
             Parse it to response_model if provided and return
@@ -21,32 +48,19 @@ class BasicDAOLayer:
             SomeDAO.get(uuid=id)
         """
 
-        if not len(kwargs):
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='kwargs not present for DB query')
-
-        field = str(list(kwargs.keys())[0])
-        value = list(kwargs.values())[0]
-
-        if type(value) != int:
-            value = str(value)
+        field, value = self.parsekwargs(kwargs)
 
         try:
             db_obj = self.target.objects.get(__raw__={field: value})
         except self.target.DoesNotExist:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='%s object not found in DB' % self.readable)
 
-        if response_model:
-            return response_model.from_orm(db_obj)
-        return db_obj
+        return self.raw_or_parsed(db_obj, response_model)
 
     def get_all(self, response_model=None):
         """ Get all objects """
-
         db_objs = list(self.target.objects.all())
-
-        if response_model:
-            return response_model.from_orm(db_objs)
-        return db_objs
+        return self.raw_or_parsed(db_objs, response_model)
 
     def create(self, data, response_model=None):
         """ Create object of type self.target. Save all fields passed in "data" into new object """
@@ -65,21 +79,12 @@ class BasicDAOLayer:
                 db_obj[k] = v
         db_obj.save()
 
-        if response_model:
-            return response_model.from_orm(db_obj)
-        return db_obj
+        return self.raw_or_parsed(db_obj, response_model)
 
     def update_fields(self, fields={}, response_model=None, **kwargs):
-        # db_obj = self.get(key=key, field='uuid', response_model=None)
+        """ Method to update specific fields in object """
 
-        if not len(kwargs):
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='kwargs not present for DB query')
-
-        field = str(list(kwargs.keys())[0])
-        value = list(kwargs.values())[0]
-
-        if type(value) != int:
-            value = str(value)
+        field, value = self.parsekwargs(kwargs)
 
         try:
             db_obj = self.target.objects.get(__raw__={field: value})
@@ -90,24 +95,35 @@ class BasicDAOLayer:
             db_obj[k] = v
         db_obj.save()
 
-        if response_model:
-            return response_model.from_orm(db_obj)
-        return db_obj
+        return self.raw_or_parsed(db_obj, response_model)
+
+    def update_object(self, object=None, response_model=None, **kwargs):
+        """ Method to update all fields in object """
+
+        field, value = self.parsekwargs(kwargs)
+
+        try:
+            db_obj = self.target.objects.get(__raw__={field: value})
+        except self.target.DoesNotExist:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='%s object not found in DB' % self.readable)
+
+        for k, v in list(object.dict().items()):
+            # print(k,v,type(v))
+            if k in self.target._fields:
+                db_obj[k] = v
+        db_obj.save()
+
+        return self.raw_or_parsed(db_obj, response_model)
 
     def get_all_where(self, response_model=None, **kwargs):
         """ Get all objects filtered by some rule """
 
-        # print('*args', *args)
         for key, value in kwargs.items():
             field = key.split('__')[0]
             rule = key.split('__')[1]
 
-            # print(field, rule)
-
             if type(value) != list:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Only lists supported for now')
-
-            # print("{0} = {1}".format(field, value))
 
             agg = []
             for item in value:
@@ -120,16 +136,9 @@ class BasicDAOLayer:
         return db_objs
 
     def delete(self, **kwargs):
-        """ Delete one object where """
+        """ Delete one object """
 
-        if not len(kwargs):
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='kwargs not present for DB query')
-
-        field = str(list(kwargs.keys())[0])
-        value = list(kwargs.values())[0]
-
-        if type(value) != int:
-            value = str(value)
+        field, value = self.parsekwargs(kwargs)
 
         try:
             db_obj = self.target.objects.get(__raw__={field: value})
@@ -137,4 +146,3 @@ class BasicDAOLayer:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='%s object not found in DB' % self.readable)
 
         db_obj.delete()
-        return None

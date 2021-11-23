@@ -3,7 +3,7 @@ from typing import Optional, List
 from uuid import uuid4
 
 import mongoengine as mongoengine
-from pydantic import BaseModel, UUID4
+from pydantic import BaseModel, UUID4, constr
 
 from config import config
 from models.user import User
@@ -12,7 +12,6 @@ from models.note import Note
 from services.filesystem import FileSystemUtils
 
 import filetype
-
 import os
 
 fs = FileSystemUtils()
@@ -99,7 +98,8 @@ class FileBM(BaseModel):
     created: Optional[datetime]
     filename: str = 'default.ext'
     filesize: Optional[int]
-    hash: Optional[str]
+    hash: Optional[constr(max_length=16)]
+    mime: Optional[constr(max_length=16)]
 
     class Config:
         orm_mode = True

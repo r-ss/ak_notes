@@ -1,15 +1,9 @@
 from fastapi import status, HTTPException
+from pydantic import UUID4
 
-# import mongoengine as mongoengine  # to catch mongoengine.errors.NotUniqueError on duplicate user registration
-
-
-from models.user import UserBM, UsersBM, UserTokenBM, UserRegBM, UserTokenBM
+from models.user import UserBM, UsersBM, UserTokenBM, UserRegBM
 
 from dao.dao_user import UserDAOLayer
-
-# from config import config
-
-from pydantic import UUID4
 
 from services.users.auth import Auth
 from services.categories import CategoriesService

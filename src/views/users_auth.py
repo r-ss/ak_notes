@@ -3,8 +3,6 @@ from fastapi import status, Depends, HTTPException
 from fastapi_utils.inferring_router import InferringRouter
 from fastapi.security import OAuth2PasswordRequestForm
 
-# from models.user import UserTokenBM
-
 from services.users.auth import Auth
 
 from config import config

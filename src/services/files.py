@@ -1,9 +1,11 @@
 from typing import List
 from fastapi import status, HTTPException, UploadFile
-
 from pydantic import UUID4
 
-from models.file import File, FileBM, FileEditBM, FilesBM
+import filetype
+import os
+
+from models.file import FileBM, FileEditBM, FilesBM
 from models.user import UserTokenBM
 
 from services.users.auth import check_ownership
@@ -41,24 +43,38 @@ class FilesService:
         note, owner = NoteDAO.get_note_owner(uuid=note_uuid)
         check_ownership(owner.uuid, token)
 
+        def collect_and_write_metadata(path: str, file: FileBM) -> None:
+            # mime
+            kind = filetype.guess(path)
+
+            if kind is not None:
+                file.mime = kind.mime  # filetype lib also have "kind.extension" property
+
+            # filesize
+            file.filesize = int(os.path.getsize(path))
+            # hash
+            file.hash = fs.file_hash(path, config.HASH_DIGEST_SIZE)
+
+            del kind
+
+            return FileDAO.update_object(uuid=file.uuid, object=file)
+
         processed_files_collector = []
         for upload in uploads:
-            db_file = File(filename=upload.filename)
+            file = FileDAO.create({'filename': upload.filename})
 
-            filename = f'{db_file.uuid}.{upload.filename.split(".")[-1]}'
+            filename = f'{file.uuid}.{upload.filename.split(".")[-1]}'
 
             file_location = '%s%s' % (config.STORAGE['UPLOADS'], filename)
             f = open(file_location, 'wb')
             f.write(upload.file.read())
             f.close()
 
-            db_file.save()
-
-            db_file.write_metadata()
-            processed_files_collector.append(FileBM.from_orm(db_file))
+            collect_and_write_metadata(file_location, file)
+            processed_files_collector.append(file)
 
             # update info about files in note
-            note.files.append(db_file.uuid)
+            note.files.append(file.uuid)
             NoteDAO.update_fields(uuid=note.uuid, fields={'files': note.files})
 
         return FilesBM.parse_obj(processed_files_collector)
