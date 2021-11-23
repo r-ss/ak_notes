@@ -21,6 +21,20 @@ router = InferringRouter(tags=['DAO'])
 class DAOLayerCBV:
 
     """ READ """
-    @router.get('/dao', status_code=status.HTTP_200_OK)
+    @router.get('/dao/one/{uuid}', status_code=status.HTTP_200_OK)
+    def read_one(self, uuid:UUID4):
+        return NotesDAOService.read_one(uuid)
+
+    """ READ """
+    @router.get('/dao/all', status_code=status.HTTP_200_OK)
     def read_all(self):
-        return NotesDAOService.somefunc()
+        return NotesDAOService.read_all()
+
+
+    @router.post('/dao', status_code=status.HTTP_201_CREATED)
+    def postooo(self, note: NoteCreateBM):
+        return NotesDAOService.postnote(note)
+
+    @router.delete('/dao/{uuid}', status_code=status.HTTP_200_OK)
+    def delete(self, uuid:UUID4):
+        return NotesDAOService.delete(uuid)

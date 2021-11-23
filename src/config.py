@@ -34,7 +34,7 @@ class AppConfig(BaseSettings):
     TESTUSER_ALICE_PASSWORD: str = None  # username: Alice
     TESTUSER_BOB_PASSWORD: str = None  # username: Bob
     TESTUSER_SUPER_PASSWORD: str = None  # username: Jesus
-    TESTNOTE_BY_ALICE_UUID: str = 'a71158eb-016f-4c56-b516-b6c7a49ed8c4'  # used in tests
+    TESTNOTE_BY_ALICE_UUID: str = '5dd5ab09-b316-4f8b-a97b-506c48e1b426'  # used in tests
     CODECLIMATE_TEST_REPORTER_ID: str = 'not available locally, will be overwritten by ENV'
 
     # FORMATTERS

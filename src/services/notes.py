@@ -11,90 +11,100 @@ from models.user import User, UserTokenBM
 
 from services.users.auth import owner_or_admin_can_proceed_only
 
-from mongoengine.queryset.visitor import Q as mongo_Q
+# from mongoengine.queryset.visitor import Q as mongo_Q
+
+from dao.dao_note import NoteDAOLayer
+from dao.dao_user import UserDAOLayer
+from dao.dao_category import CategoryDAOLayer
+
+NoteDAO = NoteDAOLayer()
+UserDAO = UserDAOLayer()
+CategoryDAO = CategoryDAOLayer()
 
 
 class NotesService:
 
     """ CREATE SERVICE """
-    def create(note: NoteCreateBM, token: UserTokenBM, category_uuid:UUID4=None) -> NoteBM:
+    def create(note_input: NoteCreateBM, token: UserTokenBM, category_uuid:UUID4=None) -> NoteBM:
         """ Create Note """
 
-        db_user = User.objects.get(uuid=token.uuid)
-
-        db_note = Note(
-            title=note.title,
-            body=note.body
-        )
-        db_note.save()
+        user = UserDAO.get(uuid=token.uuid)
+        note_created = NoteDAO.create(note_input)
 
         # Assing just created Note under specific or default category
         if category_uuid:
-            try:
-                category = Category.objects.get(uuid=category_uuid)
-            except Category.DoesNotExist:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Category does not found')
-            owner_or_admin_can_proceed_only(category.owner.uuid, token)
-
+            category = CategoryDAO.get(uuid=category_uuid)
+            # owner_or_admin_can_proceed_only(category.owner.uuid, token)
         else:
-            category = Category.get_last_for_user(db_user)
+            category = CategoryDAO.get_last_for_user(user)
 
-        category.notes.append(db_note.uuid)
-        category.save()
+        # print(type(category))
+        # print(category)
 
-        return NoteBM.from_orm(db_note)
+        category.notes.append(note_created.uuid)
+
+        # print('category.notes', category.notes)
+        CategoryDAO.update_fields(category.uuid, fields_dict={'notes': category.notes})
+
+        return note_created
 
     """ READ SERVICE """
     def read_specific(uuid: UUID4, token: UserTokenBM) -> NoteBM:
         """ Get single specific note """
+        note, owner = NoteDAO.get_note_owner(uuid=uuid)
 
-        try:
-            db_note = Note.objects.get(uuid=uuid)
-        except Note.DoesNotExist:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Note does not found')
+        if owner.uuid != token.uuid:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail='Seems like you are not authorized to this',
+            )
 
-        owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
+        return note
 
-        return NoteBM.from_orm(db_note)
 
     def read_all_by_user(token: UserTokenBM, filter=None, limit=None, offset=None) -> NotesBM:
         """ Get all notes owned by current user """
 
-        db_user = User.objects.get(uuid=token.uuid)
-        db_categories = Category.objects(uuid__in=db_user.categories)
+        user = UserDAO.get(uuid=token.uuid)
+        categories = CategoryDAO.get_all_where(uuid__in=user.categories)
 
-        # TODO - Refactor following:
+
         notes_collector = []
-        for cat in db_categories:
-
-            db_notes = Note.objects(uuid__in=cat.notes)
+        for cat in categories:
+            notes = NoteDAO.get_all_where(uuid__in=cat.notes)
 
             if filter:
-                db_notes = db_notes.filter(mongo_Q(title__contains=filter) | mongo_Q(body__contains=filter))
+                notes = NoteDAO.search_notes(cat.notes, filter)
 
-            if limit and offset:
-                if (limit + offset) > db_notes.count():
-                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="We don't have so much Notes")
-                db_notes = db_notes[offset: limit + offset]
+            # TODO limit and offset
+            # if limit and offset:
+            #     if (limit + offset) > db_notes.count():
+            #         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="We don't have so much Notes")
+            #     db_notes = db_notes[offset: limit + offset]
 
-            for n in db_notes:
+            for n in notes:
                 notes_collector.append(n)
 
-        return NotesBM.from_orm(notes_collector)
+        if offset:
+            if (limit + offset) > len(notes_collector):
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="We don't have so much Notes")
+            notes_collector = notes_collector[offset: limit + offset]
+
+        return NotesBM.parse_obj(notes_collector)
 
 
     def read_all_in_category(token: UserTokenBM, category_uuid=UUID4) -> NotesBM:
         """ Get all notes in specific category """
 
-        db_user = User.objects.get(uuid=token.uuid)
-        if category_uuid not in db_user.categories:
+        user = UserDAO.get(uuid=token.uuid)
+        if category_uuid not in user.categories:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not allowed")
 
-        db_category = Category.objects.get(uuid=category_uuid)
+        category = CategoryDAO.get(uuid=category_uuid)
         
-        db_notes = Note.objects(uuid__in=db_category.notes)
+        notes = NoteDAO.get_all_where(uuid__in=category.notes)
 
-        return NotesBM.from_orm(list(db_notes))
+        return notes
 
     # def read_all_with_tag(tag: str, token: UserTokenBM) -> NotesBM:
     #     """ Get all notes by current user that contains specific tag """
@@ -107,26 +117,23 @@ class NotesService:
     def update(input_note: NoteBM, token: UserTokenBM) -> NoteBM:
         """ Edit note """
 
-        try:
-            db_note = Note.objects.get(uuid=input_note.uuid)
-        except Note.DoesNotExist:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Note does not found')
+        note, owner = NoteDAO.get_note_owner(uuid=input_note.uuid)
 
-        owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
+        if owner.uuid != token.uuid:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail='Seems like you are not authorized to this',
+            )
 
-        untouched = True
-
+        fields_dict={}
         if input_note.title:
-            db_note.title = input_note.title
-            untouched = False
+            fields_dict['title'] = input_note.title
         if input_note.body:
-            db_note.body = input_note.body
-            untouched = False
+            fields_dict['body'] = input_note.body
 
-        if not untouched:
-            db_note.modified = datetime.utcnow()
-            db_note.save()
-            return NoteBM.from_orm(db_note)
+        if len(fields_dict) >= 1:
+            fields_dict['modified'] = datetime.utcnow()
+            return NoteDAO.update_fields(note.uuid, fields_dict=fields_dict, response_model=NoteBM)
 
 
     """ PATCH SERVICE """
@@ -136,26 +143,23 @@ class NotesService:
         if input_note.uuid and input_note.uuid != note_uuid:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Notes UUIDs confusion')
 
-        try:
-            db_note = Note.objects.get(uuid=note_uuid)
-        except Note.DoesNotExist:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Note does not found')
+        note, owner = NoteDAO.get_note_owner(uuid=note_uuid)
 
-        owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
+        if owner.uuid != token.uuid:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail='Seems like you are not authorized to this',
+            )
 
-        untouched = True
-
+        fields_dict={}
         if input_note.title:
-            db_note.title = input_note.title
-            untouched = False
+            fields_dict['title'] = input_note.title
         if input_note.body:
-            db_note.body = input_note.body
-            untouched = False
+            fields_dict['body'] = input_note.body
 
-        if not untouched:
-            db_note.modified = datetime.utcnow()
-            db_note.save()
-            return NoteBM.from_orm(db_note)
+        if len(fields_dict) >= 1:
+            fields_dict['modified'] = datetime.utcnow()
+            return NoteDAO.update_fields(note_uuid, fields_dict=fields_dict, response_model=NoteBM)
 
 
     # def update_note_category(note_uuid: str, new_category: CategoryBM, token: UserTokenBM) -> NoteBM:
@@ -176,13 +180,22 @@ class NotesService:
     """ DELETE SERVICE """
     def delete(uuid: UUID4, token: UserTokenBM) -> None:
 
-        try:
-            db_note = Note.objects.get(uuid=uuid)
-        except Note.DoesNotExist:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Note does not found')
+        user = UserDAO.get(uuid=token.uuid)
+        categories = CategoryDAO.get_all_where(uuid__in=user.categories)
 
-        owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
+        note, owner = NoteDAO.get_note_owner(uuid=uuid)
 
-        # print('delete note', db_note)
+        # print(note)
+        if owner.uuid != token.uuid:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail='Seems like you are not authorized to this',
+            )
 
-        db_note.delete()
+        for cat in categories:
+            if note.uuid in cat.notes:
+                cat.notes.remove(note.uuid)
+                CategoryDAO.update_fields(cat.uuid, fields_dict={'notes':cat.notes})
+                break
+
+        NoteDAO.delete(note.uuid)

@@ -108,6 +108,12 @@ class FileBM(BaseModel):
 class FilesBM(BaseModel):
     __root__: List[FileBM]  # __root__
 
+    def __iter__(self):
+        return iter(self.__root__)
+
+    def __getitem__(self, item):
+        return self.__root__[item]
+
     class Config:
         orm_mode = True
 

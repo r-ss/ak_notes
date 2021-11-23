@@ -1,53 +1,39 @@
-# from typing import Union
-from datetime import datetime
-
-from fastapi import status, HTTPException
-
+from dao.dao import BasicDAOLayer
 from pydantic import UUID4
 
-from models.note import Note, NoteBM, NoteCreateBM, NotePatchBM, NotesBM
-from models.category import Category
-from models.user import User, UserBM, UserTokenBM
+from models.note import Note, NoteBM, NotesBM
+from models.user import UserBM
 
-from services.users.auth import owner_or_admin_can_proceed_only
 
 from mongoengine.queryset.visitor import Q as mongo_Q
-
-
-
-class BasicDAOLayer:
-
-    def __init__(self):
-        self.target = None
-        self.readable = '--EMPTY--'
-
-
-    """ GET """
-    def get(self, key, field='uuid', response_model=None):
-
-        print('response_model', response_model)
-
-        try:
-            db_obj = self.target.objects.get(__raw__={field:key})
-        except self.target.DoesNotExist:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'{self.readable} does not found')
-
-        print('type', type(db_obj))
-        print('db_obj', db_obj)
-
-        if response_model:
-            return response_model.from_orm(db_obj)
-        return db_obj
-
 
 class NoteDAOLayer(BasicDAOLayer):
 
     def __init__(self):
-        # super().__init__()
-        self.target = User
-        self.readable = 'User'
-        
-    
-    """ GET """
+        self.target = Note
+        self.readable = 'Note'
+
     def get(self, uuid: UUID4):
-        return super().get('Alice', field='username', response_model=UserBM)
+        return super().get(uuid, response_model=NoteBM)
+
+    def get_all(self):
+        return super().get_all(response_model=NotesBM)
+
+    def get_note_owner(self, uuid: UUID4):
+        """ return NoteBM with it's owner, UserBM """
+        
+        db_note = super().get(uuid, response_model=None)
+        db_owner = db_note.owner
+        return NoteBM.from_orm(db_note), UserBM.from_orm(db_owner)
+
+
+    def create(self, note: NoteBM):
+        return super().create(note, response_model=NoteBM)
+
+    def get_all_where(self, **kwargs):
+        return super().get_all_where(response_model=NotesBM, **kwargs)
+
+    def search_notes(self, notes_list, filter):
+        db_notes = super().get_all_where(uuid__in=notes_list)
+        db_notes = db_notes.filter(mongo_Q(title__contains=filter) | mongo_Q(body__contains=filter))
+        return NotesBM.from_orm(list(db_notes))

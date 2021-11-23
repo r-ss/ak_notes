@@ -66,5 +66,11 @@ class UserLoginFormBM(BaseModel):  # used upon login
 class UsersBM(BaseModel):
     __root__: List[UserBM]  # __root__
 
+    def __iter__(self):
+        return iter(self.__root__)
+
+    def __getitem__(self, item):
+        return self.__root__[item]
+
     class Config:
         orm_mode = True

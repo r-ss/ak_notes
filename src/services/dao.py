@@ -16,16 +16,25 @@ from services.users.auth import owner_or_admin_can_proceed_only
 from mongoengine.queryset.visitor import Q as mongo_Q
 
 from dao.dao_note import NoteDAOLayer
-
 NoteDAO = NoteDAOLayer()
 
 class NotesDAOService:
 
     """ READ SERVICE """
-    def somefunc():
-        print('>>> kek')
+    def read_one(uuid):
+        note = NoteDAO.get(uuid)
+        return note
 
-        note = NoteDAO.get(uuid=config.TESTNOTE_BY_ALICE_UUID)
+    """ READ SERVICE """
+    def read_all():
+        note = NoteDAO.get_all()
+        return note
 
+    """ READ SERVICE """
+    def postnote(note):
+        note = NoteDAO.create(note)
+        return note
 
+    def delete(uuid):
+        note = NoteDAO.delete(uuid)
         return note
