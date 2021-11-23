@@ -33,12 +33,12 @@ class NotesCBV:
         return NotesService.read_specific(uuid, token)
 
     @router.get('/notes', summary='Read all notes by current user')
-    def read_all_notes_by_user(self,
-                       token: UserTokenBM = Depends(token_required),
-                       filter: Optional[str] = None,
-                       limit: Optional[int] = None,
-                       offset: Optional[int] = None
-                       ):
+    def read_all_notes_by_user(
+            self,
+            token: UserTokenBM = Depends(token_required),
+            filter: Optional[str] = None,
+            limit: Optional[int] = None,
+            offset: Optional[int] = None):
         return NotesService.read_all_by_user(token, filter, limit, offset)
 
     @router.get('/categories/{category_uuid}/notes', summary='Read all notes in specific category')

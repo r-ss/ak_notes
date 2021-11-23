@@ -29,7 +29,7 @@ async def token_required(token: str = Depends(oauth2_scheme)) -> UserTokenBM:
     return token
 
 
-def owner_or_admin_can_proceed_only(uuid: UUID4, token: UserTokenBM) -> None:
+def check_ownership(uuid: UUID4, token: UserTokenBM) -> None:
     """ Compare uuid of object with uuid of current user
         Throw an HTTPException if current user is not own object
         Method can be invoked in a middle of views to stop unauthorized operations
@@ -92,7 +92,7 @@ class Auth:
             dict = jwt.decode(refresh_token, config.SECRET_KEY, algorithms=[config.AUTH_HASHING_ALGORITHM])
             if (dict['scope'] == 'refresh_token'):
 
-                user = UserDAO.get(dict['uuid'])
+                user = UserDAO.get(uuid=dict['uuid'])
 
                 new_access_token = Auth.encode_access_token(user)
                 new_refresh_token = Auth.encode_refresh_token(user)
@@ -107,7 +107,7 @@ class Auth:
 
     def login(username: str, password: str) -> bool:
 
-        db_user = UserDAO.get(username, field='username', response_model=None)
+        db_user = UserDAO.get(username=username, response_model=None)
 
         # If password correct login and return token to client
         if bcrypt.checkpw(password.encode('utf-8'), db_user.userhash.encode('utf-8')):
@@ -117,7 +117,7 @@ class Auth:
             access_token = Auth.encode_access_token(user)
             refresh_token = Auth.encode_refresh_token(user)
 
-            UserDAO.update_fields(user.uuid, fields_dict={'last_login': datetime.datetime.utcnow()})
+            UserDAO.update_fields(uuid=user.uuid, fields={'last_login': datetime.datetime.utcnow()})
 
             log.info(f'User { user.username } logged in')
 

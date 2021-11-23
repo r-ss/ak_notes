@@ -56,8 +56,10 @@ def post(client, url, data, headers=None, auth=None):
 def put(client, url, data, headers=None, auth=None):
     return dispatcher(client, 'put', url, data, headers, auth)
 
+
 def patch(client, url, data, headers=None, auth=None):
     return dispatcher(client, 'patch', url, data, headers, auth)
+
 
 def delete(client, url, headers=None, auth=None):
     return dispatcher(client, 'delete', url, None, headers, auth)

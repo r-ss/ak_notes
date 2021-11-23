@@ -1,6 +1,6 @@
 from fastapi import status, HTTPException
 
-import mongoengine as mongoengine  # to catch mongoengine.errors.NotUniqueError on duplicate user registration
+# import mongoengine as mongoengine  # to catch mongoengine.errors.NotUniqueError on duplicate user registration
 
 
 from models.user import UserBM, UsersBM, UserTokenBM, UserRegBM, UserTokenBM
@@ -11,7 +11,7 @@ from dao.dao_user import UserDAOLayer
 
 from pydantic import UUID4
 
-from services.users.auth import Auth, owner_or_admin_can_proceed_only
+from services.users.auth import Auth
 from services.categories import CategoriesService
 
 from services.resslogger import RessLogger
@@ -43,19 +43,19 @@ class UsersService:
 
     def read_specific(uuid: UUID4) -> UserBM:
         """ Get specific user from database and return """
-        return UserDAO.get(uuid)
+        return UserDAO.get(uuid=uuid)
 
     """ UPDATE SERVICE """
     def edit_username(input_user: UserBM, token: UserTokenBM) -> UserBM:
         """ Change username of specific user in database and returu User with updated data """
 
-        user = UserDAO.get(input_user.uuid)
+        user = UserDAO.get(uuid=input_user.uuid)
 
         if user.uuid != token.uuid:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not allowed")
 
         user.username = input_user.username
-        return UserDAO.update_fields(user.uuid,fields_dict={'username': user.username})
+        return UserDAO.update_fields(uuid=user.uuid, fields={'username': user.username})
 
     """ DELETE SERVICE """
     def delete(uuid: UUID4, token: UserTokenBM) -> None:
@@ -70,4 +70,4 @@ class UsersService:
         for cat_uuid in user.categories:
             CategoriesService.delete(cat_uuid, token, already_authenticated_user=user)
 
-        UserDAO.delete(user.uuid)
+        UserDAO.delete(uuid=user.uuid)

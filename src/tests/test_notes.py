@@ -99,7 +99,6 @@ def test_note_update_by_owner(client, alice):
     assert status_code == 200
 
 
-
 def test_note_patch_by_owner(client, alice):
     data = {
         'uuid': note_uuid_save,
@@ -155,5 +154,3 @@ def test_remove_unnecessary_notes(client, alice):
     status_code, result = get(client, '/notes', auth=alice.token)
     assert status_code == 200
     assert len(result) == notes_count
-
-

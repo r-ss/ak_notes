@@ -58,8 +58,8 @@ class Note(mongoengine.Document):
     meta = {'ordering': ['-id']}  # Descending Order
 
 
-""" Basic Note structure """
 class NoteBM(BaseModel):
+    """ Basic Note structure """
     numerical_id: Optional[int]
     uuid: UUID4
     created: Optional[datetime.datetime]
@@ -72,8 +72,9 @@ class NoteBM(BaseModel):
     class Config:
         orm_mode = True
 
-""" Model for Note creation - whn we don't know UUID yet """
+
 class NoteCreateBM(NoteBM):
+    """ Model for Note creation - whn we don't know UUID yet """
     uuid: Optional[UUID4]
     title: constr(max_length=200)
     body: constr(max_length=10000)
@@ -81,8 +82,9 @@ class NoteCreateBM(NoteBM):
     class Config:
         orm_mode = True
 
-""" Model for patch requests - all fields are optional """
+
 class NotePatchBM(NoteBM):
+    """ Model for patch requests - all fields are optional """
     uuid: Optional[UUID4]
     title: Optional[constr(max_length=200)]
     body: Optional[constr(max_length=10000)]

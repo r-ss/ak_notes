@@ -1,17 +1,25 @@
 from typing import List
 from fastapi import status, HTTPException, UploadFile
-from models.category import Category
 
 from pydantic import UUID4
 
-from models.note import Note
 from models.file import File, FileBM, FileEditBM, FilesBM
-from models.user import User, UserTokenBM
+from models.user import UserTokenBM
 
-from services.users.auth import owner_or_admin_can_proceed_only
+from services.users.auth import check_ownership
 from config import config
 
 from services.filesystem import FileSystemUtils
+
+from dao.dao_file import FileDAOLayer
+from dao.dao_note import NoteDAOLayer
+from dao.dao_user import UserDAOLayer
+from dao.dao_category import CategoryDAOLayer
+
+FileDAO = FileDAOLayer()
+NoteDAO = NoteDAOLayer()
+UserDAO = UserDAOLayer()
+CategoryDAO = CategoryDAOLayer()
 
 fs = FileSystemUtils()
 
@@ -30,31 +38,28 @@ class FilesService:
         # db_user = User.objects.get(uuid=token.uuid)
         fs.check_dir(config.STORAGE['UPLOADS'])  # create storage dir on filesystem if not exist
 
-        try:
-            db_note = Note.objects.get(uuid=note_uuid)
-        except Note.DoesNotExist:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Note does not found')
-
-        owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
+        note, owner = NoteDAO.get_note_owner(uuid=note_uuid)
+        check_ownership(owner.uuid, token)
 
         processed_files_collector = []
         for upload in uploads:
             db_file = File(filename=upload.filename)
-            db_file.save()
 
-            file_location = '%s%s' % (config.STORAGE['UPLOADS'], db_file.filename_uuid)
+            filename = f'{db_file.uuid}.{upload.filename.split(".")[-1]}'
+
+            file_location = '%s%s' % (config.STORAGE['UPLOADS'], filename)
             f = open(file_location, 'wb')
             f.write(upload.file.read())
             f.close()
+
+            db_file.save()
 
             db_file.write_metadata()
             processed_files_collector.append(FileBM.from_orm(db_file))
 
             # update info about files in note
-            db_note.files.append(db_file.uuid)
-            db_note.save()
-
-            del db_file
+            note.files.append(db_file.uuid)
+            NoteDAO.update_fields(uuid=note.uuid, fields={'files': note.files})
 
         return FilesBM.parse_obj(processed_files_collector)
 
@@ -62,73 +67,70 @@ class FilesService:
     def read_specific(uuid: UUID4, token: UserTokenBM) -> FileBM:
         """ Get from db and return single specific file """
 
-        try:
-            db_file = File.objects.get(uuid=uuid)
-        except File.DoesNotExist:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='File does not found')
+        file, owner = FileDAO.get_file_owner(uuid=uuid)
+        check_ownership(owner.uuid, token)
 
-        owner_or_admin_can_proceed_only(db_file.owner.uuid, token)
-        return FileBM.from_orm(db_file)
+        return file
 
     def read_all_for_note(note_uuid: UUID4, token: UserTokenBM) -> FilesBM:
         """ Get all files attached to specific note """
 
-        db_note = Note.objects.get(uuid=note_uuid)
-
-        owner_or_admin_can_proceed_only(db_note.owner.uuid, token)
+        note, owner = NoteDAO.get_note_owner(uuid=note_uuid)
+        check_ownership(owner.uuid, token)
 
         files_collector = []
-        for item in db_note.files:
-            db_file = File.objects.get(uuid=item)
-            files_collector.append(db_file)
+        for item in note.files:
+            file = FileDAO.get(uuid=item)
+            files_collector.append(file)
 
         return FilesBM.from_orm(files_collector)
 
     def read_all_for_user(token: UserTokenBM) -> FilesBM:
         """ Get all files owned by current user """
 
-        db_user = User.objects.get(uuid=token.uuid)
-        categories_db = Category.objects(uuid__in=db_user.categories)
+        user = UserDAO.get(uuid=token.uuid)
+        categories = CategoryDAO.get_all_where(uuid__in=user.categories)
+
         files_collector = []
-        for category in categories_db:
-            db_notes = Note.objects(uuid__in=category.notes)
-            for db_note in db_notes:
-                db_files = File.objects(uuid__in=db_note.files)
-                for db_file in db_files:
-                    files_collector.append(db_file)
+        for category in categories:
+            notes = NoteDAO.get_all_where(uuid__in=category.notes)
+            for note in notes:
+                files = FileDAO.get_all_where(uuid__in=note.files)
+                for file in files:
+                    files_collector.append(file)
 
         return FilesBM.from_orm(files_collector)
 
     """ UPDATE SERVICE """
-    def update(file: FileEditBM, token: UserTokenBM) -> FileBM:
+    def update(input_file: FileEditBM, token: UserTokenBM) -> FileBM:
         """ Update filename """
 
-        db_file = File.objects.get(uuid=file.uuid)
+        file, owner = FileDAO.get_file_owner(uuid=input_file.uuid)
+        check_ownership(owner.uuid, token)
 
-        # TODO - check permissions
-        owner_or_admin_can_proceed_only(db_file.owner.uuid, token)
-
-        if db_file.extension != file.filename.split('.')[-1]:
+        if input_file.filename.split('.')[-1] != file.filename.split('.')[-1]:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You can't change file extension")
 
-        db_file.filename = file.filename
-        return FileBM.from_orm(db_file.save())
+        file.filename = input_file.filename
+        return FileDAO.update_fields(uuid=file.uuid, fields={'filename': file.filename})
 
     """ DELETE SERVICE """
     def delete(uuid: UUID4, token: UserTokenBM) -> None:
         """ Delete specific file from filesystem and from database """
 
-        db_file = File.objects.get(uuid=uuid)
+        file, owner = FileDAO.get_file_owner(uuid=uuid)
+        check_ownership(owner.uuid, token)
 
-        # TODO - check permissions
-        owner_or_admin_can_proceed_only(db_file.owner.uuid, token)
+        # file_uuid = file.uuid
+        note = FileDAO.get_parent_note(uuid=file.uuid)
 
         # update info about file in note
-        db_note = db_file.parent
-        db_note.files.remove(db_file.uuid)
-        db_note.save()
+        note.files.remove(file.uuid)
+        NoteDAO.update_fields(uuid=note.uuid, fields={'files': note.files})
 
-        if db_file.is_file_exist and db_file.is_file_on_disk_equal_to_saved_hash:
-            db_file.remove_from_filesystem()
-            if not db_file.is_file_exist:
-                db_file.delete()
+        filename = f'{file.uuid}.{file.filename.split(".")[-1]}'
+        file_location = '%s%s' % (config.STORAGE['UPLOADS'], filename)
+
+        if fs.is_file_exist(file_location):
+            fs.delete_file(file_location)
+            FileDAO.delete(uuid=file.uuid)

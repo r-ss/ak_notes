@@ -1,4 +1,4 @@
-from tests.testutils import post, get, put, patch, delete, postForm
+from tests.testutils import post, get, patch, delete, postForm
 
 # from config import config
 

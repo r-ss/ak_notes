@@ -43,9 +43,9 @@ class File(mongoengine.Document):
     def path(self) -> str:
         return '%s%s' % (config.STORAGE['UPLOADS'], self.filename_uuid)
 
-    @property
-    def is_file_exist(self) -> bool:
-        return fs.is_file_exist(self.path)
+    # @property
+    # def is_file_exist(self) -> bool:
+    #     return fs.is_file_exist(self.path)
 
     @property
     def extension(self) -> str:
@@ -55,14 +55,14 @@ class File(mongoengine.Document):
     def filename_uuid(self) -> str:
         return f'{self.uuid}.{self.extension}'
 
-    @property
-    def is_file_on_disk_equal_to_saved_hash(self) -> bool:
-        if fs.file_hash(self.path, config.HASH_DIGEST_SIZE) == self.hash:
-            return True
-        return False
+    # @property
+    # def is_file_on_disk_equal_to_saved_hash(self) -> bool:
+    #     if fs.file_hash(self.path, config.HASH_DIGEST_SIZE) == self.hash:
+    #         return True
+    #     return False
 
-    def remove_from_filesystem(self) -> None:
-        fs.delete_file(self.path)
+    # def remove_from_filesystem(self) -> None:
+    #     fs.delete_file(self.path)
 
     def write_metadata(self) -> None:
         # mime
