@@ -40,7 +40,7 @@ class InfoCBV:
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
-                'resource': 'ak_notes, info, CI/CD 2',
+                'resource': 'ak_notes, info, CI/CD',
                 'git_revision_hash': git_revision_hash,
                 'datetime': datetime.now().strftime('%d %B %Y %H:%M:%S'),
                 'os': os.name,
