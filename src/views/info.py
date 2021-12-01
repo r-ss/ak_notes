@@ -1,6 +1,7 @@
 from datetime import datetime
 import os
 import platform
+import subprocess
 
 from fastapi import status
 from fastapi_utils.cbv import cbv
@@ -27,10 +28,20 @@ class InfoCBV:
 
         load1, load5, load15 = os.getloadavg()
 
+        def get_git_revision_short_hash() -> str:
+            return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
+
+        try:
+            git_revision_hash = get_git_revision_short_hash()
+        except:
+            git_revision_hash = 'error'
+
+
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
                 'resource': 'ak_notes, info',
+                'git_revision_hash': git_revision_hash,
                 'datetime': datetime.now().strftime('%d %B %Y %H:%M:%S'),
                 'os': os.name,
                 'platform': platform.system(),
