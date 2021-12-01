@@ -37,6 +37,6 @@ def test_root(client):
 def test_info(client):
     status_code, result = get(client, '/info')
     assert status_code == 200
-    assert result['resource'] == 'ak_notes, info'
+    assert result['resource'].startswith('ak_notes') is True
     assert result['testing'] is True
     assert result['python version'] == '3.10.0'
