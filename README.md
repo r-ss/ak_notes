@@ -7,6 +7,10 @@ Free tier of MongoDB Atlas used here
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/53f9891d099578172022/maintainability)](https://codeclimate.com/github/r-ss/ak_notes/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/53f9891d099578172022/test_coverage)](https://codeclimate.com/github/r-ss/ak_notes/test_coverage)
 
+## 1 декабря:
+
+- CI/CD. При каждом коммите, если автотесты проходят успешно, новая версия выкатывается на продакшен ([aknotes.ress.ws/docs](https://aknotes.ress.ws/docs))
+
 ## 16 ноября — 23 ноября:
 
 - DAO. Все без исключения манипуляции с БД через отдельный слой абстракции.
