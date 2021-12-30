@@ -39,4 +39,4 @@ def test_info(client):
     assert status_code == 200
     assert result['resource'].startswith('ak_notes') is True
     assert result['testing'] is True
-    assert result['python version'] == '3.10.0'
+    assert result['python version'].startswith('3.1') is True
