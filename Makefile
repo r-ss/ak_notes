@@ -32,6 +32,10 @@ coverage:
 	poetry run pytest --cov=src
 	poetry run coverage html
 
+serve:
+	@echo "Starting uvicorn server..."
+	poetry run uvicorn main:app --app-dir src
+
 
 # deploy:
 # 	@echo "Deploying to basscadet..."
