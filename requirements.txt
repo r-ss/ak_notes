@@ -1,0 +1,14 @@
+fastapi # 0.70.0
+uvicorn[standard] # 0.15.0
+mongoengine # 0.23.1
+dnspython # 2.1.0 - must be installed to use mongodb+srv:// URIs
+bcrypt # 3.2.0 - for user auth, used in login.py
+PyJWT # 2.3.0 - for user auth, used in login.py
+pytest # 6.2.5
+coverage # 6.1.2
+requests # 2.26.0 - used by FastAPI TestClient
+fastapi-utils # 0.2.1 - for @cbr decorator, Class Based Router
+python-multipart # 0.0.5 - Form data in FastAPI requires "python-multipart" to be installed
+filetype # 1.0.8
+flake8 # 4.0.1 - code style guide check
+oitnb # 0.2.2 - linter
