@@ -5,10 +5,9 @@ from mongoengine.queryset.visitor import Q as mongo_Q
 
 
 class NoteDAOLayer(BasicDAOLayer):
-
     def __init__(self):
         self.target = Note
-        self.readable = 'Note'
+        self.readable = "Note"
 
     def get(self, response_model=NoteBM, **kwargs):
         return super().get(response_model=response_model, **kwargs)
@@ -17,7 +16,7 @@ class NoteDAOLayer(BasicDAOLayer):
         return super().get_all(response_model=NotesBM)
 
     def get_note_owner(self, **kwargs):
-        """ return NoteBM with it's owner, UserBM """
+        """return NoteBM with it's owner, UserBM"""
 
         db_note = super().get(response_model=None, **kwargs)
         db_owner = db_note.owner

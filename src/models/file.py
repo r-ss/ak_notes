@@ -18,17 +18,17 @@ fs = FileSystemUtils()
 
 
 class File(mongoengine.Document):
-    """ Represents File attached to Note
+    """Represents File attached to Note
 
-      ┌───────────────────────────────────┐
-      │ Place in app's dataflow:          │
-      │                         .-> Tag   │
-      │ User -> Category -> Note -> File  │
-      │                             ^^^^  │
-      └───────────────────────────────────┘
+    ┌───────────────────────────────────┐
+    │ Place in app's dataflow:          │
+    │                         .-> Tag   │
+    │ User -> Category -> Note -> File  │
+    │                             ^^^^  │
+    └───────────────────────────────────┘
 
-        parent: Note
-        childrens: None
+      parent: Note
+      childrens: None
     """
 
     uuid = mongoengine.UUIDField(binary=False, default=uuid4, required=True, unique=True)
@@ -40,7 +40,7 @@ class File(mongoengine.Document):
 
     @property
     def path(self) -> str:
-        return '%s%s' % (config.STORAGE['UPLOADS'], self.filename_uuid)
+        return "%s%s" % (config.STORAGE["UPLOADS"], self.filename_uuid)
 
     # @property
     # def is_file_exist(self) -> bool:
@@ -48,11 +48,11 @@ class File(mongoengine.Document):
 
     @property
     def extension(self) -> str:
-        return self.filename.split('.')[-1]
+        return self.filename.split(".")[-1]
 
     @property
     def filename_uuid(self) -> str:
-        return f'{self.uuid}.{self.extension}'
+        return f"{self.uuid}.{self.extension}"
 
     # @property
     # def is_file_on_disk_equal_to_saved_hash(self) -> bool:
@@ -90,13 +90,13 @@ class File(mongoengine.Document):
         db_user = User.objects.filter(categories__in=[db_category.uuid])[0]
         return db_user
 
-    meta = {'ordering': ['-id']}  # Descending Order
+    meta = {"ordering": ["-id"]}  # Descending Order
 
 
 class FileBM(BaseModel):
     uuid: Optional[UUID4]
     created: Optional[datetime]
-    filename: str = 'default.ext'
+    filename: str = "default.ext"
     filesize: Optional[int]
     hash: Optional[constr(max_length=16)]
     mime: Optional[constr(max_length=16)]

@@ -28,16 +28,17 @@ fs = FileSystemUtils()
 
 class FilesService:
 
-    """ CREATE SERVICE """
-    def create(note_uuid: UUID4, uploads: List[UploadFile], token: UserTokenBM) -> FilesBM:
-        """ Handle multiple uploaded files.
-            Saving every uploaded file on local disk.
-            Create File item in database, savign hash checksum for file.
+    """CREATE SERVICE"""
 
-            Returns list of oploaded files.
+    def create(note_uuid: UUID4, uploads: List[UploadFile], token: UserTokenBM) -> FilesBM:
+        """Handle multiple uploaded files.
+        Saving every uploaded file on local disk.
+        Create File item in database, savign hash checksum for file.
+
+        Returns list of oploaded files.
         """
 
-        fs.check_dir(config.STORAGE['UPLOADS'])  # create storage dir on filesystem if not exist
+        fs.check_dir(config.STORAGE["UPLOADS"])  # create storage dir on filesystem if not exist
 
         note, owner = NoteDAO.get_note_owner(uuid=note_uuid)
         check_ownership(owner.uuid, token)
@@ -58,12 +59,12 @@ class FilesService:
 
         processed_files_collector = []
         for upload in uploads:
-            file = FileDAO.create({'filename': upload.filename})
+            file = FileDAO.create({"filename": upload.filename})
 
             filename = f'{file.uuid}.{upload.filename.split(".")[-1]}'
 
-            file_location = '%s%s' % (config.STORAGE['UPLOADS'], filename)
-            f = open(file_location, 'wb')
+            file_location = "%s%s" % (config.STORAGE["UPLOADS"], filename)
+            f = open(file_location, "wb")
             f.write(upload.file.read())
             f.close()
 
@@ -72,13 +73,14 @@ class FilesService:
 
             # update info about files in note
             note.files.append(file.uuid)
-            NoteDAO.update_fields(uuid=note.uuid, fields={'files': note.files})
+            NoteDAO.update_fields(uuid=note.uuid, fields={"files": note.files})
 
         return FilesBM.parse_obj(processed_files_collector)
 
     """ READ SERVICE """
+
     def read_specific(uuid: UUID4, token: UserTokenBM) -> FileBM:
-        """ Get from db and return single specific file """
+        """Get from db and return single specific file"""
 
         file, owner = FileDAO.get_file_owner(uuid=uuid)
         check_ownership(owner.uuid, token)
@@ -86,7 +88,7 @@ class FilesService:
         return file
 
     def read_all_for_note(note_uuid: UUID4, token: UserTokenBM) -> FilesBM:
-        """ Get all files attached to specific note """
+        """Get all files attached to specific note"""
 
         note, owner = NoteDAO.get_note_owner(uuid=note_uuid)
         check_ownership(owner.uuid, token)
@@ -99,7 +101,7 @@ class FilesService:
         return FilesBM.from_orm(files_collector)
 
     def read_all_for_user(token: UserTokenBM) -> FilesBM:
-        """ Get all files owned by current user """
+        """Get all files owned by current user"""
 
         user = UserDAO.get(uuid=token.uuid)
         categories = CategoryDAO.get_all_where(uuid__in=user.categories)
@@ -115,21 +117,23 @@ class FilesService:
         return FilesBM.from_orm(files_collector)
 
     """ UPDATE SERVICE """
+
     def update(input_file: FileEditBM, token: UserTokenBM) -> FileBM:
-        """ Update filename """
+        """Update filename"""
 
         file, owner = FileDAO.get_file_owner(uuid=input_file.uuid)
         check_ownership(owner.uuid, token)
 
-        if input_file.filename.split('.')[-1] != file.filename.split('.')[-1]:
+        if input_file.filename.split(".")[-1] != file.filename.split(".")[-1]:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You can't change file extension")
 
         file.filename = input_file.filename
-        return FileDAO.update_fields(uuid=file.uuid, fields={'filename': file.filename})
+        return FileDAO.update_fields(uuid=file.uuid, fields={"filename": file.filename})
 
     """ DELETE SERVICE """
+
     def delete(uuid: UUID4, token: UserTokenBM) -> None:
-        """ Delete specific file from filesystem and from database """
+        """Delete specific file from filesystem and from database"""
 
         file, owner = FileDAO.get_file_owner(uuid=uuid)
         check_ownership(owner.uuid, token)
@@ -138,10 +142,10 @@ class FilesService:
 
         # update info about file in note
         note.files.remove(file.uuid)
-        NoteDAO.update_fields(uuid=note.uuid, fields={'files': note.files})
+        NoteDAO.update_fields(uuid=note.uuid, fields={"files": note.files})
 
         filename = f'{file.uuid}.{file.filename.split(".")[-1]}'
-        file_location = '%s%s' % (config.STORAGE['UPLOADS'], filename)
+        file_location = "%s%s" % (config.STORAGE["UPLOADS"], filename)
 
         if fs.is_file_exist(file_location):
             fs.delete_file(file_location)

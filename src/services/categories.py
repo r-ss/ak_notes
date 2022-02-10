@@ -14,46 +14,43 @@ CategoryDAO = CategoryDAOLayer()
 
 
 class CategoriesService:
-
     def get_user_helper(token: UserTokenBM, already_authenticated_user=None) -> UserBM:
-        """ To reduce code repeat """
+        """To reduce code repeat"""
         if not already_authenticated_user:
             return UserDAO.get(uuid=token.uuid)
         return already_authenticated_user
 
     """ CREATE SERVICE """
+
     def create(name: str, token: UserTokenBM) -> CategoryBM:
-        """ Create category item and return it """
+        """Create category item and return it"""
 
         user = UserDAO.get(uuid=token.uuid)
 
-        category = CategoryDAO.create(
-            CategoryBM.parse_obj({'name': name})
-        )
+        category = CategoryDAO.create(CategoryBM.parse_obj({"name": name}))
 
         user.categories.append(category.uuid)
-        UserDAO.update_fields(uuid=user.uuid, fields={'categories': user.categories})
+        UserDAO.update_fields(uuid=user.uuid, fields={"categories": user.categories})
         return category
 
     def create_default(user: UserBM) -> None:
-        """ Create default category for just registered user """
+        """Create default category for just registered user"""
 
-        category = CategoryDAO.create(
-            CategoryBM.parse_obj({'name': f'Default for {user.username}'})
-        )
+        category = CategoryDAO.create(CategoryBM.parse_obj({"name": f"Default for {user.username}"}))
 
         user.categories.append(category.uuid)
-        UserDAO.update_fields(uuid=user.uuid, fields={'categories': user.categories})
+        UserDAO.update_fields(uuid=user.uuid, fields={"categories": user.categories})
         return category
 
     """ READ SERVICE """
+
     def read_specific(uuid: UUID4, token: UserTokenBM) -> CategoryBM:
-        """ Get specific category item """
+        """Get specific category item"""
         # TODO - check_ownership(db_category.owner.uuid, token)
         return CategoryDAO.get(uuid=uuid)
 
     def read_all(token: UserTokenBM) -> CategoriesBM:
-        """ Get all category items by current user """
+        """Get all category items by current user"""
 
         user = CategoriesService.get_user_helper(token)
         categories = user.categories
@@ -66,17 +63,19 @@ class CategoriesService:
         return CategoryDAO.get_last_for_user(user)
 
     """ UPDATE SERVICE """
+
     def update(input_category: CategoryBM, token: UserTokenBM) -> CategoryBM:
-        """ Method to change category name """
+        """Method to change category name"""
 
         category = CategoryDAO.get(uuid=input_category.uuid)
 
         # TODO - check_ownership(db_category.owner.uuid, token)
-        return CategoryDAO.update_fields(uuid=category.uuid, fields={'name': input_category.name})
+        return CategoryDAO.update_fields(uuid=category.uuid, fields={"name": input_category.name})
 
     """ DELETE SERVICE """
+
     def delete(uuid: UUID4, token: UserTokenBM, already_authenticated_user=None) -> None:
-        """ Delete Category from database """
+        """Delete Category from database"""
 
         user = CategoriesService.get_user_helper(token, already_authenticated_user)
 
@@ -85,4 +84,4 @@ class CategoriesService:
         CategoryDAO.delete(uuid=uuid)
 
         user.categories.remove(category.uuid)
-        UserDAO.update_fields(uuid=user.uuid, fields={'categories': user.categories})
+        UserDAO.update_fields(uuid=user.uuid, fields={"categories": user.categories})

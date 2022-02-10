@@ -12,17 +12,17 @@ from models.note import Note
 
 
 class Tag(mongoengine.Document):
-    """ Represents Tag attached to Note
+    """Represents Tag attached to Note
 
-      ┌───────────────────────────────────┐
-      │ Place in app's dataflow:          │
-      │                         .-> File  │
-      │ User -> Category -> Note -> Tag   │
-      │                             ^^^   │
-      └───────────────────────────────────┘
+    ┌───────────────────────────────────┐
+    │ Place in app's dataflow:          │
+    │                         .-> File  │
+    │ User -> Category -> Note -> Tag   │
+    │                             ^^^   │
+    └───────────────────────────────────┘
 
-        parent: Note
-        childrens: None
+      parent: Note
+      childrens: None
     """
 
     uuid = mongoengine.UUIDField(binary=False, default=uuid4, required=True, unique=True)
@@ -41,14 +41,14 @@ class Tag(mongoengine.Document):
         db_user = User.objects.filter(categories__in=[db_category.uuid])[0]
         return db_user
 
-    meta = {'ordering': ['-id']}  # Descending Order
+    meta = {"ordering": ["-id"]}  # Descending Order
 
 
 class TagBM(BaseModel):
     uuid: Optional[UUID4]
     created: Optional[datetime]
     name: constr(max_length=32)
-    color: Optional[Color] = Color('green')
+    color: Optional[Color] = Color("green")
 
     class Config:
         orm_mode = True

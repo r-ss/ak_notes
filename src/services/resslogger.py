@@ -17,7 +17,7 @@ def singleton(cls, *args, **kw):
 
 @singleton
 class RessLogger(object):
-    """ For now, it's just wrapper for print function to debug, but later... it can send telegram messages :) """
+    """For now, it's just wrapper for print function to debug, but later... it can send telegram messages :)"""
 
     @property
     def time(self) -> str:
@@ -25,4 +25,4 @@ class RessLogger(object):
 
     def info(self, msg) -> None:
         if not config.TESTING_MODE:
-            print('resslogger, %s - info - %s' % (self.time, msg))
+            print("resslogger, %s - info - %s" % (self.time, msg))

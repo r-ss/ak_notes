@@ -13,25 +13,25 @@ from models.category import Category
 
 
 class Note(mongoengine.Document):
-    """ Represents Note in database.
+    """Represents Note in database.
 
-        Main fields here are titile and body
-        Note created under single category Like Work / Personal etc
-        Category can be changed after note creation
-        Note can have multiple files assotiated with it
-        Note can have multiple tags and can be listed by specific tag
-        Note can be deleted
-        TODO - remove assotiated with note files on deletion
+      Main fields here are titile and body
+      Note created under single category Like Work / Personal etc
+      Category can be changed after note creation
+      Note can have multiple files assotiated with it
+      Note can have multiple tags and can be listed by specific tag
+      Note can be deleted
+      TODO - remove assotiated with note files on deletion
 
-      ┌───────────────────────────────────┐
-      │ Place in app's dataflow:          │
-      │                         .-> Tag   │
-      │ User -> Category -> Note -> File  │
-      │                     ^^^^          │
-      └───────────────────────────────────┘
+    ┌───────────────────────────────────┐
+    │ Place in app's dataflow:          │
+    │                         .-> Tag   │
+    │ User -> Category -> Note -> File  │
+    │                     ^^^^          │
+    └───────────────────────────────────┘
 
-        parent: Category
-        childrens: Tag, File
+      parent: Category
+      childrens: Tag, File
     """
 
     numerical_id = mongoengine.SequenceField(unique=True)
@@ -55,11 +55,12 @@ class Note(mongoengine.Document):
     def owner(self) -> User:
         return User.objects.filter(categories__in=[self.parent.uuid])[0]
 
-    meta = {'ordering': ['-id']}  # Descending Order
+    meta = {"ordering": ["-id"]}  # Descending Order
 
 
 class NoteBM(BaseModel):
-    """ Basic Note structure """
+    """Basic Note structure"""
+
     numerical_id: Optional[int]
     uuid: UUID4
     created: Optional[datetime.datetime]
@@ -74,7 +75,8 @@ class NoteBM(BaseModel):
 
 
 class NoteCreateBM(NoteBM):
-    """ Model for Note creation - whn we don't know UUID yet """
+    """Model for Note creation - whn we don't know UUID yet"""
+
     uuid: Optional[UUID4]
     title: constr(max_length=200)
     body: constr(max_length=10000)
@@ -84,7 +86,8 @@ class NoteCreateBM(NoteBM):
 
 
 class NotePatchBM(NoteBM):
-    """ Model for patch requests - all fields are optional """
+    """Model for patch requests - all fields are optional"""
+
     uuid: Optional[UUID4]
     title: Optional[constr(max_length=200)]
     body: Optional[constr(max_length=10000)]

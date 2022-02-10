@@ -6,18 +6,18 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 PRODUCTION = True
 
-STORAGEROOT = '/storage/'
+STORAGEROOT = "/storage/"
 if not os.path.isdir(STORAGEROOT):
     PRODUCTION = False
-    STORAGEROOT = '%s/storage/' % os.path.split(BASE_DIR)[0]
+    STORAGEROOT = "%s/storage/" % os.path.split(BASE_DIR)[0]
 
 # import pytz
 # TZ = pytz.timezone('Europe/Moscow')
 
 
 class AppConfig(BaseSettings):
-    """ Using Pydantic's approach to manage application config
-        Docs: https://pydantic-docs.helpmanual.io/usage/settings/
+    """Using Pydantic's approach to manage application config
+    Docs: https://pydantic-docs.helpmanual.io/usage/settings/
     """
 
     # GENERAL SETTINGS AND HOSTS
@@ -29,34 +29,25 @@ class AppConfig(BaseSettings):
 
     # TESTS
     TESTING_MODE: bool = False  # Must be set to True only in autotests
-    TESTING_ASSETS_PATH: str = '%s/testing_assets/' % os.path.split(BASE_DIR)[0]
+    TESTING_ASSETS_PATH: str = "%s/testing_assets/" % os.path.split(BASE_DIR)[0]
     # Define passwords for 2 regular users and 1 admin to check permissions in tests
     TESTUSER_ALICE_PASSWORD: str = None  # username: Alice
     TESTUSER_BOB_PASSWORD: str = None  # username: Bob
     TESTUSER_SUPER_PASSWORD: str = None  # username: Jesus
-    TESTNOTE_BY_ALICE_UUID: str = '2514b9da-40e6-4008-8868-3db5ed498b87'  # used in tests
-    CODECLIMATE_TEST_REPORTER_ID: str = 'not available locally, will be overwritten by ENV'
+    TESTNOTE_BY_ALICE_UUID: str = "2514b9da-40e6-4008-8868-3db5ed498b87"  # used in tests
+    CODECLIMATE_TEST_REPORTER_ID: str = "not available locally, will be overwritten by ENV"
 
     # FORMATTERS
-    DATETIME_FORMAT_TECHNICAL: str = '%Y-%m-%d %H:%M:%S'
-    DATETIME_FORMAT_HUMAN: str = '%d.%m.%Y %H:%M'
+    DATETIME_FORMAT_TECHNICAL: str = "%Y-%m-%d %H:%M:%S"
+    DATETIME_FORMAT_HUMAN: str = "%d.%m.%Y %H:%M"
 
     # PATHS
-    STORAGE: dict = {
-        'ROOT': STORAGEROOT,
-        'UPLOADS': '%s/uploads/' % STORAGEROOT
-    }
+    STORAGE: dict = {"ROOT": STORAGEROOT, "UPLOADS": "%s/uploads/" % STORAGEROOT}
 
     # AUTHENTICATION
-    AUTH_USERNAME_REGEX: dict = {
-        'regex': r'\A[\w\-\.]{3,}\Z',
-        'failmessage': 'Username must be at least 3 characters and may contain . - _ chars.'  # also can be used as hint
-    }
-    AUTH_PASSWORD_REGEX: dict = {
-        'regex': r'\A[\w\-\.]{6,}\Z',
-        'failmessage': 'Password must at least 6 characters and may contain . - _ symbols'  # also can be used as hint
-    }
-    AUTH_HASHING_ALGORITHM: str = 'HS256'  # algorithm to encode/decode JWT user tokens
+    AUTH_USERNAME_REGEX: dict = {"regex": r"\A[\w\-\.]{3,}\Z", "failmessage": "Username must be at least 3 characters and may contain . - _ chars."}  # also can be used as hint
+    AUTH_PASSWORD_REGEX: dict = {"regex": r"\A[\w\-\.]{6,}\Z", "failmessage": "Password must at least 6 characters and may contain . - _ symbols"}  # also can be used as hint
+    AUTH_HASHING_ALGORITHM: str = "HS256"  # algorithm to encode/decode JWT user tokens
     AUTH_ACCESS_TOKEN_EXPIRATION_TIME: datetime.timedelta = datetime.timedelta(minutes=60)
     AUTH_REFRESH_TOKEN_EXPIRATION_TIME: datetime.timedelta = datetime.timedelta(days=30)
 
@@ -66,8 +57,9 @@ class AppConfig(BaseSettings):
     # ALLOWED_UPLOADS = ['jpg', 'jpeg', 'gif', 'png', 'zip', 'txt']
 
     class Config:
-        """ Loads the dotenv file."""
-        env_file: str = '.env'
+        """Loads the dotenv file."""
+
+        env_file: str = ".env"
 
 
 config = AppConfig()

@@ -10,17 +10,17 @@ from uuid import uuid4
 
 
 class User(mongoengine.Document):
-    """ Represents User in database.
+    """Represents User in database.
 
-      ┌───────────────────────────────────┐
-      │ Place in app's dataflow:          │
-      │                         .-> Tag   │
-      │ User -> Category -> Note -> File  │
-      │ ^^^^                              │
-      └───────────────────────────────────┘
+    ┌───────────────────────────────────┐
+    │ Place in app's dataflow:          │
+    │                         .-> Tag   │
+    │ User -> Category -> Note -> File  │
+    │ ^^^^                              │
+    └───────────────────────────────────┘
 
-        parent: None
-        childrens: Category
+      parent: None
+      childrens: Category
     """
 
     uuid = mongoengine.UUIDField(binary=False, default=uuid4, required=True)
@@ -32,7 +32,7 @@ class User(mongoengine.Document):
     is_superadmin = mongoengine.BooleanField(default=False)
     categories = mongoengine.ListField(mongoengine.UUIDField(binary=False), default=[])
 
-    meta = {'ordering': ['-id']}  # Descending Order
+    meta = {"ordering": ["-id"]}  # Descending Order
 
 
 class UserBM(BaseModel):

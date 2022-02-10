@@ -25,7 +25,7 @@ class FileSystemUtils:
     def file_hash(self, path, digest_size) -> str:
         if os.path.isfile(path):
             h = blake2b(digest_size=digest_size)
-            h.update(open(path, 'rb').read())
+            h.update(open(path, "rb").read())
             return h.hexdigest()
 
     def move_file(self, src, dst) -> None:

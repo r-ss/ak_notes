@@ -4,10 +4,9 @@ from models.category import Category, CategoryBM, CategoriesBM
 
 
 class CategoryDAOLayer(BasicDAOLayer):
-
     def __init__(self):
         self.target = Category
-        self.readable = 'Category'
+        self.readable = "Category"
 
     def get(self, response_model=CategoryBM, **kwargs):
         return super().get(response_model=response_model, **kwargs)

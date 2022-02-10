@@ -3,10 +3,9 @@ from models.tag import Tag, TagBM, TagsBM
 
 
 class TagDAOLayer(BasicDAOLayer):
-
     def __init__(self):
         self.target = Tag
-        self.readable = 'Tag'
+        self.readable = "Tag"
 
     def get(self, response_model=TagBM, **kwargs):
         return super().get(response_model=response_model, **kwargs)

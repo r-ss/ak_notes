@@ -9,28 +9,28 @@ def test_auth_login(client):
     global token_save
 
     data = {
-        'username': 'Bob',
-        'password': config.TESTUSER_BOB_PASSWORD,
+        "username": "Bob",
+        "password": config.TESTUSER_BOB_PASSWORD,
     }
-    status_code, result = postForm(client, '/token', data)
-    token_save = result['access_token']
-    assert result['token_type'] == 'bearer'
+    status_code, result = postForm(client, "/token", data)
+    token_save = result["access_token"]
+    assert result["token_type"] == "bearer"
     assert status_code == 202
 
 
 def test_auth_bad_login(client):
     global token_save
-    data = {'username': 'sh', 'password': 'wrong-password'}  # too short
-    status_code, result = postForm(client, '/token', data)
-    assert result['detail'].startswith('Username must be at least 3 char') is True
+    data = {"username": "sh", "password": "wrong-password"}  # too short
+    status_code, result = postForm(client, "/token", data)
+    assert result["detail"].startswith("Username must be at least 3 char") is True
     assert status_code == 400
 
 
 def test_auth_bad_password(client):
     global token_save
-    data = {'username': 'Alice', 'password': 'wrong-password'}
-    status_code, result = postForm(client, '/token', data)
-    assert result['detail'] == 'Wrong password'
+    data = {"username": "Alice", "password": "wrong-password"}
+    status_code, result = postForm(client, "/token", data)
+    assert result["detail"] == "Wrong password"
     assert status_code == 401
 
 

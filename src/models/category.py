@@ -9,18 +9,18 @@ from models.user import User
 
 
 class Category(mongoengine.Document):
-    """ Represents Note Category in database.
-        Work / Personal etc
+    """Represents Note Category in database.
+      Work / Personal etc
 
-      ┌───────────────────────────────────┐
-      │ Place in app's dataflow:          │
-      │                         .-> Tag   │
-      │ User -> Category -> Note -> File  │
-      │         ^^^^^^^^                  │
-      └───────────────────────────────────┘
+    ┌───────────────────────────────────┐
+    │ Place in app's dataflow:          │
+    │                         .-> Tag   │
+    │ User -> Category -> Note -> File  │
+    │         ^^^^^^^^                  │
+    └───────────────────────────────────┘
 
-        parent: User
-        childrens: Note
+      parent: User
+      childrens: Note
     """
 
     numerical_id = mongoengine.SequenceField(unique=True)
@@ -43,11 +43,11 @@ class Category(mongoengine.Document):
     def owner(self) -> User:
         return User.objects.filter(categories__in=[self.uuid])[0]
 
-    meta = {'ordering': ['-id']}  # Descending Order
+    meta = {"ordering": ["-id"]}  # Descending Order
 
 
 class CategoryBM(BaseModel):
-    """ Pydantic's BaseModel of Category object """
+    """Pydantic's BaseModel of Category object"""
 
     numerical_id: Optional[int]
     uuid: Optional[UUID4]
@@ -60,7 +60,7 @@ class CategoryBM(BaseModel):
 
 
 class CategoriesBM(BaseModel):
-    """ Pydantic's BaseModel of List with Category objects """
+    """Pydantic's BaseModel of List with Category objects"""
 
     __root__: List[CategoryBM]  # __root__
 
