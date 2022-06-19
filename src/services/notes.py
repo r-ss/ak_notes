@@ -64,7 +64,7 @@ class NotesService:
         if offset:
             if (limit + offset) > len(notes_collector):
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="We don't have so much Notes")
-            notes_collector = notes_collector[offset : limit + offset]
+            notes_collector = notes_collector[offset: limit + offset]
 
         return NotesBM.parse_obj(notes_collector)
 

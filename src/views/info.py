@@ -34,8 +34,8 @@ class InfoCBV:
 
         try:
             git_revision_hash = get_git_revision_short_hash()
-        except:
-            git_revision_hash = "error"
+        except Exception as err:
+            git_revision_hash = f"error {err}"
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,

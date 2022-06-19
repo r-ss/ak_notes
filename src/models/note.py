@@ -15,7 +15,7 @@ from models.category import Category
 class Note(mongoengine.Document):
     """Represents Note in database.
 
-      Main fields here are titile and body
+      Main fields here are title and body
       Note created under single category Like Work / Personal etc
       Category can be changed after note creation
       Note can have multiple files assotiated with it
