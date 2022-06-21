@@ -7,26 +7,25 @@ Free tier of MongoDB Atlas used here
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/53f9891d099578172022/maintainability)](https://codeclimate.com/github/r-ss/ak_notes/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/53f9891d099578172022/test_coverage)](https://codeclimate.com/github/r-ss/ak_notes/test_coverage)
 
-## 1 декабря:
+## December 1:
 
-- CI/CD. При каждом коммите, если автотесты проходят успешно, новая версия выкатывается на продакшен ([aknotes.ress.ws/docs](https://aknotes.ress.ws/docs))
+- CI/CD. With each commit, if the autotests pass successfully, the new version is rolled out to production ([aknotes.ress.ws/docs](https://aknotes.ress.ws/docs))
 
-## 16 ноября — 23 ноября:
+## November 16 - November 23:
 
-- DAO. Все без исключения манипуляции с БД через отдельный слой абстракции.
-- Теги: CRUD, выбор заметок по тегу и т.д.
-- Избавился от некрасивого распарсинга json,  
-теперь используются методы Pydantic from_orm для парсинга объектов из бд.
-- Структура URI-адресов приведена в более близкий к философии REST вид.
-- Модель Dataflow изменена на User → Category → Note → File.  
-В наследниках отсутствуют поля owner, в родителях записываются наследники в виде массива.
-- Фильтрация заметок по полям, GET /notes?filter=milk
-- Пагинация. GET /notes?filter=lego&limit=10&offset=15
-- Добавлены refresh-токены
-- Для загруженных файлов записываем в базу вес, mime-type, хэш
-- Добавил теги для странички /docs, описания вьюшек
-- Добавлены методы PATCH для обновления записей по частично переданной модели данных.  
-Для обновления по полной модели используется PUT (например для заметок доступны PUT и PATCH, последний будет работать если для обновления передан, скажем, только заголовок заметки)
+- DAO. Without exception, all manipulations with the database now works through a separate layer of abstraction.
+- Tags: CRUD, selection of notes by tag, etc.
+- Got rid of ugly json parsing, Pydantic's from_orm methods are now used to parse objects from the database.
+- The structure of URI addresses has been brought closer to the REST philosophy.
+- Dataflow model changed to User → Category → Note → File.\
+In the childrens there are no owner fields, in the parents the childrens are written in the form of an array.
+- Filtering notes by fields, GET /notes?filter=milk
+- Pagination. GET /notes?filter=lego&limit=10&offset=15
+- Added refresh tokens for auth
+- For uploaded files, write weight, mime-type, hash to the database
+- Added tags for page /docs, descriptions of views
+- Added PATCH methods to update records on a partially passed data model.
+To update the full model, PUT is used (for example, PUT and PATCH are available for notes, the latter will work if, say, only the note title is passed for updating)
 
 ### Current dataflow model:
 
