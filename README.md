@@ -52,55 +52,26 @@ To update the full model, PUT is used (for example, PUT and PATCH are available 
 
 ask me for test user credentials
 
-## Installing on a local machine
-
-Clone repository:
-```sh
-git clone https://github.com/r-ss/ak_notes.git
-cd ak_notes
-```
-
-Virtual Environment:
-```sh
-python3.10 -m venv env
-source env/bin/activate
-```
-
-Install requirements:
-```sh
-pip install -r requirements.txt
-```
-
-You'll need to set env secrets:
-```
-SECRET_KEY as string
-DBHOST_DEV as mongodb+srv URI with database credentials
-```
-
-Style Guide check:
-```sh
-flake8
-```
+## Thanks to Makefile file:
 
 Test:
 ```sh
-pytest -rP
+make test
+make coverage
 ```
 
 Development server:
 ```sh
-uvicorn main:app --reload --app-dir src
+make serve
 ```
 
-## What to discuss
-
-1. Which pattern I got? MVC, MVP? or MVS? (Model-View-Shit)
-2. When files will be saved in AWS instead of local filesystem, can we call application as "stateless"?
+Code lint:
+```sh
+make lint
+```
 
 ## TODO
 
 1. Save files in a cloud instead of local disk
 2. On note deletion also remove all assotiated files
-3. CI/CD. Currently docker build and docker run triggers manually
-3. JSON parsing-unparsing in a some views does not looks good - needs to be refactored
 4. Some restrictions for file uploads - by extension / mime-type / size
