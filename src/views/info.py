@@ -49,7 +49,6 @@ class InfoCBV:
                 "python version": platform.python_version(),
                 "testing": config.TESTING_MODE,
                 "production": config.PRODUCTION,
-                "secret_key_5chars": config.SECRET_KEY[0:5],
                 "load averages": f"{load1:.2f} {load5:.2f} {load15:.2f}",
             },
         )
