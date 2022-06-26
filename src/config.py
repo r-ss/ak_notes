@@ -8,7 +8,7 @@ PRODUCTION = True
 
 STORAGEROOT = "/storage/"
 if not os.path.isdir(STORAGEROOT):
-    # PRODUCTION = False
+    PRODUCTION = False
     STORAGEROOT = "%s/storage/" % os.path.split(BASE_DIR)[0]
 
 # import pytz
