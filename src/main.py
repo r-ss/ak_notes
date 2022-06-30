@@ -17,7 +17,7 @@ routers = [info_router, categories_router, files_router, tags_router, users_auth
 
 
 # Connecting to DB
-mg = mongoengine.connect(host=config.DBHOST)
+mg = mongoengine.connect(host=config.DBHOST, db='aknotes_db')
 
 app = FastAPI()
 testclient = TestClient(app)
